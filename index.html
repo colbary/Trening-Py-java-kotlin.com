@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeDojo — учим программировать просто</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161210;
+  --bg2:#1d1815;
+  --panel:#221c18;
+  --panel2:#28211c;
+  --line:#3a2f27;
+  --text:#f2ead9;
+  --text-dim:#b8ab97;
+  --text-mute:#8a7c69;
+  --amber:#ffb000;
+  --amber-dim:#c98800;
+  --teal:#2dd4bf;
+  --red:#ff6b5e;
+  --green:#7dd07d;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+code,pre,.mono{font-family:'IBM Plex Mono',monospace;}
+::selection{background:var(--amber);color:#1a1512;}
+
+#landing{max-width:1000px;margin:0 auto;padding:50px 24px 40px;}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:40px;}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);animation:blink 1.4s infinite;}
+@keyframes blink{0%,49%{opacity:1;}50%,100%{opacity:.15;}}
+.brand span{font-family:'IBM Plex Mono';font-weight:600;letter-spacing:.5px;font-size:15px;color:var(--text-dim);}
+
+.hero{margin-bottom:50px;}
+.hero .kicker{font-family:'IBM Plex Mono';color:var(--amber);font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+.hero h1{font-size:40px;line-height:1.15;margin:0 0 18px;font-weight:600;}
+.hero p{font-size:17px;line-height:1.6;color:var(--text-dim);max-width:560px;margin:0 0 28px;}
+
+.lang-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:20px;}
+.lang-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;cursor:pointer;transition:border-color .12s ease, transform .12s ease;}
+.lang-card:hover{border-color:var(--amber);transform:translateY(-3px);}
+.lang-card .icon{font-size:32px;margin-bottom:10px;}
+.lang-card .lang-name{font-size:18px;font-weight:600;margin-bottom:6px;}
+.lang-card .lang-desc{font-size:14px;color:var(--text-mute);margin-bottom:12px;}
+.lang-card .btn{display:inline-block;background:var(--amber);color:#1a1512;border:none;padding:8px 18px;font-family:'IBM Plex Mono';font-weight:600;font-size:13px;border-radius:6px;cursor:pointer;}
+.lang-card .btn:hover{background:#ffc233;}
+
+#app{display:none;height:100vh;}
+.app-shell{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:250px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;}
+.sidebar-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.sidebar-head .brand span{font-size:13px;}
+.sidebar-head button{background:none;border:none;color:var(--text-mute);cursor:pointer;font-size:13px;font-family:'IBM Plex Mono';}
+.sidebar-head button:hover{color:var(--amber);}
+.lesson-list{flex:1;overflow-y:auto;padding:10px 0;}
+.lesson-group-title{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);padding:14px 16px 6px;font-family:'IBM Plex Mono';}
+.lesson-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;font-size:13px;color:var(--text-dim);border-left:2px solid transparent;}
+.lesson-item:hover{background:var(--panel);}
+.lesson-item.active{background:var(--panel);border-left-color:var(--amber);color:var(--text);}
+.lesson-item .chk{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;}
+.lesson-item.done .chk{background:var(--teal);border-color:var(--teal);color:#0d1512;}
+.lesson-item .lnum{font-family:'IBM Plex Mono';color:var(--text-mute);font-size:11px;width:18px;}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{padding:10px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);}
+.topbar .nav-btns{display:flex;gap:8px;}
+.navbtn{background:var(--panel);border:1px solid var(--line);color:var(--text-dim);padding:7px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:'IBM Plex Mono';}
+.navbtn:hover{border-color:var(--amber-dim);color:var(--text);}
+.navbtn:disabled{opacity:.35;cursor:default;}
+.topbar .title{font-weight:500;font-size:14px;color:var(--text-dim);}
+
+.content{flex:1;display:flex;overflow:hidden;}
+.term-pane{width:35%;min-width:280px;display:flex;flex-direction:column;border-right:1px solid var(--line);}
+.term-head{padding:7px 16px;font-family:'IBM Plex Mono';font-size:11.5px;color:var(--text-mute);border-bottom:1px solid var(--line);background:var(--bg2);text-transform:uppercase;letter-spacing:.5px;}
+#terminal{flex:1;overflow-y:auto;padding:12px 14px;font-family:'IBM Plex Mono';font-size:13px;line-height:1.6;background:#100d0b;white-space:pre-wrap;word-break:break-word;}
+#terminal .err{color:var(--red);}
+#terminal .ok{color:var(--green);}
+#terminal .sys{color:var(--text-mute);}
+
+.result-banner{margin:0 14px 10px;padding:10px 12px;border-radius:8px;font-size:13px;display:none;align-items:center;gap:8px;font-family:'IBM Plex Mono';}
+.result-banner.show{display:flex;}
+.result-banner.pass{background:rgba(125,208,125,.12);border:1px solid var(--green);color:var(--green);}
+.result-banner.fail{background:rgba(255,107,94,.1);border:1px solid var(--red);color:var(--red);}
+
+.right-side{flex:1;display:flex;flex-direction:column;min-width:0;}
+.lesson-pane{flex:1;overflow-y:auto;padding:22px 26px;border-bottom:1px solid var(--line);}
+.lesson-pane h1{font-size:22px;margin:0 0 4px;}
+.lesson-pane .eyebrow{font-family:'IBM Plex Mono';color:var(--amber);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.lesson-pane .theory{font-size:14.5px;line-height:1.7;color:var(--text-dim);}
+.lesson-pane .theory p{margin:0 0 12px;}
+.lesson-pane .theory code{background:var(--panel2);padding:1px 6px;border-radius:4px;color:var(--teal);font-size:13px;}
+.lesson-pane pre{background:#100d0b;border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6;margin:8px 0 16px;color:var(--text);}
+.task-box{margin-top:16px;background:var(--panel);border:1px solid var(--amber-dim);border-radius:var(--radius);padding:14px 16px;}
+.task-box .lbl{font-family:'IBM Plex Mono';font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.task-box p{margin:0;font-size:14px;line-height:1.6;color:var(--text);}
+
+.hints{margin-top:14px;}
+.hint-btn{background:none;border:1px dashed var(--line);color:var(--text-mute);padding:7px 12px;border-radius:6px;font-size:12.5px;cursor:pointer;font-family:'IBM Plex Mono';margin-right:6px;margin-bottom:6px;}
+.hint-btn:hover{border-color:var(--teal);color:var(--teal);}
+.hint-box{margin-top:6px;font-size:13px;color:var(--text-dim);background:var(--panel2);border-left:2px solid var(--teal);padding:10px 12px;border-radius:0 6px 6px 0;display:none;margin-bottom:6px;}
+
+.editor-pane{height:45%;min-height:200px;display:flex;flex-direction:column;}
+.editor-toolbar{padding:7px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;background:var(--bg2);}
+.editor-toolbar .fname{font-family:'IBM Plex Mono';font-size:12px;color:var(--text-mute);}
+.spacer{flex:1;}
+.btn{border:none;border-radius:6px;padding:7px 14px;font-family:'IBM Plex Mono';font-size:12.5px;cursor:pointer;font-weight:600;}
+.btn-run{background:var(--panel);color:var(--text);border:1px solid var(--line);}
+.btn-run:hover{border-color:var(--teal);color:var(--teal);}
+.btn-check{background:var(--amber);color:#1a1512;}
+.btn-check:hover{background:#ffc233;}
+.btn-reset{background:none;color:var(--text-mute);border:1px solid var(--line);}
+.btn-reset:hover{color:var(--red);border-color:var(--red);}
+
+textarea#code{flex:1;width:100%;background:#100d0b;color:var(--text);border:none;outline:none;resize:none;font-family:'IBM Plex Mono';font-size:13.5px;line-height:1.6;padding:14px 16px;tab-size:4;}
+.inputs-row{padding:7px 14px;border-top:1px solid var(--line);background:var(--bg2);display:flex;align-items:center;gap:8px;}
+.inputs-row label{font-size:12px;color:var(--text-mute);font-family:'IBM Plex Mono';white-space:nowrap;}
+.inputs-row input{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:5px 10px;border-radius:6px;font-family:'IBM Plex Mono';font-size:12.5px;}
+
+@media(max-width:900px){
+  .content{flex-direction:column;}
+  .term-pane{width:100%;border-right:none;border-bottom:1px solid var(--line);max-height:30vh;}
+  .right-side{flex:1;}
+  .sidebar{position:fixed;left:-250px;top:0;bottom:0;z-index:20;transition:left .2s;}
+  .sidebar.open{left:0;}
+}
+</style>
+</head>
+<body>
+
+<div id="landing">
+  <div class="brand"><div class="dot"></div><span>CODEDOJO // учим программировать просто</span></div>
+  <div class="hero">
+    <div class="kicker">бесплатно · в браузере · без установки</div>
+    <h1>Учи языки программирования,<br>пиша код.</h1>
+    <p>Простые уроки с живым редактором и настоящим кодом прямо в браузере. Выбери язык и начинай.</p>
+  </div>
+  <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--text-mute);font-family:'IBM Plex Mono';margin-bottom:18px;">Выбери язык</h2>
+  <div class="lang-cards">
+    <div class="lang-card" onclick="startLang('python')"><div class="icon">🐍</div><div class="lang-name">Python</div><div class="lang-desc">Самый простой для начала. 100+ уроков.</div><button class="btn">Начать →</button></div>
+    <div class="lang-card" onclick="startLang('java')"><div class="icon">☕</div><div class="lang-name">Java</div><div class="lang-desc">Мощный язык. 80+ уроков.</div><button class="btn">Начать →</button></div>
+    <div class="lang-card" onclick="startLang('kotlin')"><div class="icon">🟣</div><div class="lang-name">Kotlin</div><div class="lang-desc">Современный язык. 70+ уроков.</div><button class="btn">Начать →</button></div>
+    <div class="lang-card" onclick="startLang('javascript')"><div class="icon">💛</div><div class="lang-name">JavaScript</div><div class="lang-desc">Язык веба. 80+ уроков.</div><button class="btn">Начать →</button></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="app-shell">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-head"><div class="brand"><div class="dot"></div><span id="sidebarLang">CODEDOJO</span></div><button id="toLanding">← языки</button></div>
+      <div class="lesson-list" id="lessonList"></div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <div class="nav-btns"><button class="navbtn" id="prevBtn">← назад</button><button class="navbtn" id="nextBtn">вперёд →</button></div>
+        <div class="title" id="topTitle"></div>
+        <div style="width:100px"></div>
+      </div>
+      <div class="content">
+        <div class="term-pane">
+          <div class="term-head">терминал</div>
+          <div id="terminal"><span class="sys">Выбери язык и начни учиться</span></div>
+          <div class="result-banner" id="resultBanner"></div>
+        </div>
+        <div class="right-side">
+          <div class="lesson-pane">
+            <div class="eyebrow" id="lessonEyebrow"></div>
+            <h1 id="lessonTitle"></h1>
+            <div class="theory" id="lessonTheory"></div>
+            <div class="task-box"><div class="lbl">Задание</div><p id="lessonTask"></p></div>
+            <div class="hints" id="hintsWrap"></div>
+          </div>
+          <div class="editor-pane">
+            <div class="editor-toolbar">
+              <span class="fname mono" id="fname">solution</span>
+              <div class="spacer"></div>
+              <button class="btn btn-reset" id="resetBtn">сброс</button>
+              <button class="btn btn-run" id="runBtn">▶ Запустить</button>
+              <button class="btn btn-check" id="checkBtn">✓ Проверить</button>
+            </div>
+            <textarea id="code" spellcheck="false"></textarea>
+            <div class="inputs-row" id="inputsRow" style="display:none;"><label>input():</label><input type="text" id="stdinValues" placeholder="значения через запятую"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+/* ================= БОЛЬШАЯ БАЗА УРОКОВ ================= */
+let currentLang = 'python';
+let currentIndex = 0;
+let progress = {};
+let pyodideReady = null;
+
+// Генератор уроков для Python (100+)
+function generatePythonLessons(){
+  const lessons = [];
+  const add = (sec, title, theory, task, starter, hints, solution, rules) => {
+    lessons.push({sec, title, theory, task, starter, hints, solution, rules});
+  };
+  
+  // БАЗОВЫЙ СИНТАКСИС (20 уроков)
+  add('Синтаксис', 'Привет, мир!', '<p><code>print</code> выводит текст на экран.</p>', 'Напиши print с приветствием.', '# код\n', ['print("текст")'], 'print("Привет, мир!")', [{t:'codeIncludes',v:'print('},{t:'noError'},{t:'outputNotEmpty'}]);
+  add('Синтаксис', 'Комментарии', '<p><code>#</code> — комментарий, Python его игнорирует.</p>', 'Напиши код с комментарием.', '', ['# комментарий'], '# комментарий\nprint("Привет")', [{t:'codeMatches',v:'#'},{t:'noError'}]);
+  add('Синтаксис', 'Числа (int)', '<p>Целые числа: <code>5</code>, <code>-10</code>, <code>0</code>.</p>', 'Выведи любое целое число.', '', ['print(42)'], 'print(42)', [{t:'codeMatches',v:'-?\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Дробные числа (float)', '<p>Дробные: <code>3.14</code>, <code>-0.5</code>.</p>', 'Выведи дробное число.', '', ['print(3.14)'], 'print(3.14)', [{t:'codeMatches',v:'-?\\d+\\.\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Строки', '<p>Текст в кавычках: <code>"Привет"</code> или <code>\'Привет\'</code>.</p>', 'Выведи строку.', '', ['print("текст")'], 'print("текст")', [{t:'codeMatches',v:'["\'][^"\']*["\']'},{t:'noError'}]);
+  add('Синтаксис', 'Сложение чисел', '<p><code>+</code> складывает числа.</p>', 'Выведи сумму двух чисел.', '', ['print(5 + 3)'], 'print(5 + 3)', [{t:'codeMatches',v:'\\d+\\s*\\+\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Вычитание', '<p><code>-</code> вычитает.</p>', 'Выведи разность.', '', ['print(10 - 4)'], 'print(10 - 4)', [{t:'codeMatches',v:'\\d+\\s*-\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Умножение', '<p><code>*</code> умножает.</p>', 'Выведи произведение.', '', ['print(5 * 4)'], 'print(5 * 4)', [{t:'codeMatches',v:'\\d+\\s*\\*\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Деление', '<p><code>/</code> делит. Результат всегда float.</p>', 'Раздели 10 на 2.', '', ['print(10 / 2)'], 'print(10 / 2)', [{t:'codeMatches',v:'\\d+\\s*/\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Целочисленное деление', '<p><code>//</code> — деление без остатка.</p>', 'Выведи 7 // 2.', '', ['print(7 // 2)'], 'print(7 // 2)', [{t:'codeMatches',v:'\\d+\\s*//\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Остаток от деления', '<p><code>%</code> — остаток.</p>', 'Выведи 10 % 3.', '', ['print(10 % 3)'], 'print(10 % 3)', [{t:'codeMatches',v:'\\d+\\s*%\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Степень', '<p><code>**</code> — возведение в степень.</p>', 'Выведи 2 в степени 10.', '', ['print(2 ** 10)'], 'print(2 ** 10)', [{t:'codeMatches',v:'\\d+\\s*\\*\\*\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Несколько аргументов print', '<p>print может выводить несколько значений через запятую.</p>', 'Выведи число и строку.', '', ['print("Число:", 42)'], 'print("Число:", 42)', [{t:'codeIncludes',v:','},{t:'noError'}]);
+  add('Синтаксис', 'sep — разделитель', '<p><code>sep</code> задаёт разделитель между значениями.</p>', 'Выведи два слова через дефис.', '', ['print("a", "b", sep="-")'], 'print("a", "b", sep="-")', [{t:'codeMatches',v:'sep\\s*='},{t:'noError'}]);
+  add('Синтаксис', 'end — конец строки', '<p><code>end</code> задаёт что будет в конце вывода.</p>', 'Выведи два print в одну строку.', '', ['print("a", end="")\nprint("b")'], 'print("a", end="")\nprint("b")', [{t:'codeMatches',v:'end\\s*='},{t:'noError'}]);
+  add('Синтаксис', 'Склейка строк', '<p>Строки можно склеивать через <code>+</code>.</p>', 'Склей "Привет" и "мир".', '', ['print("Привет" + " " + "мир")'], 'print("Привет" + " " + "мир")', [{t:'codeMatches',v:'["\'][^"\']*["\']\\s*\\+'},{t:'noError'}]);
+  add('Синтаксис', 'Повторение строки', '<p>Строку можно умножать на число.</p>', 'Выведи "А" 5 раз.', '', ['print("А" * 5)'], 'print("А" * 5)', [{t:'codeMatches',v:'["\'][^"\']*["\']\\s*\\*\\s*\\d+'},{t:'noError'}]);
+  add('Синтаксис', 'Длина строки', '<p><code>len()</code> возвращает длину строки.</p>', 'Выведи длину строки "Python".', '', ['print(len("Python"))'], 'print(len("Python"))', [{t:'codeIncludes',v:'len('},{t:'noError'}]);
+  add('Синтаксис', 'Верхний регистр', '<p><code>.upper()</code> делает строку ЗАГЛАВНОЙ.</p>', 'Выведи "hello" заглавными.', '', ['print("hello".upper())'], 'print("hello".upper())', [{t:'codeIncludes',v:'.upper()'},{t:'noError'}]);
+  add('Синтаксис', 'Нижний регистр', '<p><code>.lower()</code> делает строку строчной.</p>', 'Выведи "HELLO" строчными.', '', ['print("HELLO".lower())'], 'print("HELLO".lower())', [{t:'codeIncludes',v:'.lower()'},{t:'noError'}]);
+
+  // ПЕРЕМЕННЫЕ (15 уроков)
+  add('Переменные', 'Что такое переменная', '<p>Переменная — имя для значения. <code>=</code> присваивает.</p>', 'Создай переменную x = 5 и выведи.', '', ['x = 5\nprint(x)'], 'x = 5\nprint(x)', [{t:'codeMatches',v:'\\w+\\s*='},{t:'noError'}]);
+  add('Переменные', 'Присваивание строки', '<p>Переменная может хранить строку.</p>', 'Создай name = "Анна" и выведи.', '', ['name = "Анна"\nprint(name)'], 'name = "Анна"\nprint(name)', [{t:'codeMatches',v:'\\w+\\s*=\\s*["\']'},{t:'noError'}]);
+  add('Переменные', 'Изменение значения', '<p>Значение переменной можно менять.</p>', 'Измени x с 5 на 10 и выведи.', '', ['x = 5\nx = 10\nprint(x)'], 'x = 5\nx = 10\nprint(x)', [{t:'codeMatches',v:'\\w+\\s*=\\s*\\d+\\s*\\n\\s*\\w+\\s*=\\s*\\d+'},{t:'noError'}]);
+  add('Переменные', 'Сложение переменных', '<p>Переменные можно складывать.</p>', 'Создай a=5, b=3 и выведи сумму.', '', ['a = 5\nb = 3\nprint(a + b)'], 'a = 5\nb = 3\nprint(a + b)', [{t:'codeMatches',v:'\\w+\\s*\\+\\s*\\w+'},{t:'noError'}]);
+  add('Переменные', 'Умножение переменных', '<p>Переменные можно умножать.</p>', 'Создай a=4, b=3 и выведи произведение.', '', ['a = 4\nb = 3\nprint(a * b)'], 'a = 4\nb = 3\nprint(a * b)', [{t:'codeMatches',v:'\\w+\\s*\\*\\s*\\w+'},{t:'noError'}]);
+  add('Переменные', 'Правила имён', '<p>Имена: буквы, цифры, _. Нельзя начинать с цифры.</p>', 'Создай переменную с _ в имени.', '', ['my_var = 10\nprint(my_var)'], 'my_var = 10\nprint(my_var)', [{t:'codeMatches',v:'\\w+_\\w+\\s*='},{t:'noError'}]);
+  add('Переменные', 'Множественное присваивание', '<p>Можно присвоить несколько переменных сразу.</p>', 'Создай x, y, z = 1, 2, 3 и выведи.', '', ['x, y, z = 1, 2, 3\nprint(x, y, z)'], 'x, y, z = 1, 2, 3\nprint(x, y, z)', [{t:'codeMatches',v:'\\w+,\\s*\\w+,\\s*\\w+\\s*='},{t:'noError'}]);
+  add('Переменные', 'Обмен значениями', '<p>Поменять местами: <code>a, b = b, a</code>.</p>', 'Поменяй значения a и b.', '', ['a = 1\nb = 2\na, b = b, a\nprint(a, b)'], 'a = 1\nb = 2\na, b = b, a\nprint(a, b)', [{t:'codeMatches',v:'\\w+,\\s*\\w+\\s*=\\s*\\w+,\\s*\\w+'},{t:'noError'}]);
+  add('Переменные', 'Тип переменной', '<p><code>type()</code> показывает тип.</p>', 'Выведи type(5) и type("текст").', '', ['print(type(5))\nprint(type("текст"))'], 'print(type(5))\nprint(type("текст"))', [{t:'codeIncludes',v:'type('},{t:'noError'}]);
+  add('Переменные', 'Преобразование в int', '<p><code>int()</code> превращает в число.</p>', 'Преврати "5" в число и умножь на 2.', '', ['print(int("5") * 2)'], 'print(int("5") * 2)', [{t:'codeIncludes',v:'int('},{t:'noError'}]);
+  add('Переменные', 'Преобразование в str', '<p><code>str()</code> превращает в текст.</p>', 'Преврати 5 в текст и склей с "abc".', '', ['print(str(5) + "abc")'], 'print(str(5) + "abc")', [{t:'codeIncludes',v:'str('},{t:'noError'}]);
+  add('Переменные', 'Преобразование в float', '<p><code>float()</code> превращает в дробное.</p>', 'Преврати "3.14" в float.', '', ['print(float("3.14"))'], 'print(float("3.14"))', [{t:'codeIncludes',v:'float('},{t:'noError'}]);
+  add('Переменные', 'Проверка типа', '<p><code>isinstance()</code> проверяет тип.</p>', 'Проверь isinstance(5, int).', '', ['print(isinstance(5, int))'], 'print(isinstance(5, int))', [{t:'codeIncludes',v:'isinstance('},{t:'noError'}]);
+  add('Переменные', 'None', '<p><code>None</code> — отсутствие значения.</p>', 'Выведи None.', '', ['print(None)'], 'print(None)', [{t:'codeIncludes',v:'None'},{t:'noError'}]);
+  add('Переменные', 'Глобальные переменные', '<p>Переменные видны во всей программе.</p>', 'Создай переменную и используй её в print.', '', ['x = 10\nprint(x)'], 'x = 10\nprint(x)', [{t:'codeMatches',v:'\\w+\\s*='},{t:'noError'}]);
+
+  // УСЛОВИЯ (15 уроков)
+  add('Условия', 'if — если', '<p><code>if</code> выполняет код, если условие верно.</p>', 'Проверь: если 5 > 3, выведи "Да".', '', ['if 5 > 3:\n    print("Да")'], 'if 5 > 3:\n    print("Да")', [{t:'codeIncludes',v:'if '},{t:'noError'}]);
+  add('Условия', 'else — иначе', '<p><code>else</code> — если условие неверно.</p>', 'Если 5 < 3 выведи "Да", иначе "Нет".', '', ['if 5 < 3:\n    print("Да")\nelse:\n    print("Нет")'], 'if 5 < 3:\n    print("Да")\nelse:\n    print("Нет")', [{t:'codeIncludes',v:'else'},{t:'noError'}]);
+  add('Условия', 'elif — иначе если', '<p><code>elif</code> — дополнительная проверка.</p>', 'Используй elif для второго условия.', '', ['x = 5\nif x > 10:\n    print("больше 10")\nelif x > 3:\n    print("больше 3")'], 'x = 5\nif x > 10:\n    print("больше 10")\nelif x > 3:\n    print("больше 3")', [{t:'codeIncludes',v:'elif'},{t:'noError'}]);
+  add('Условия', 'Сравнение: равно', '<p><code>==</code> проверяет равенство.</p>', 'Проверь: 5 == 5.', '', ['print(5 == 5)'], 'print(5 == 5)', [{t:'codeMatches',v:'=='},{t:'noError'}]);
+  add('Условия', 'Сравнение: не равно', '<p><code>!=</code> — не равно.</p>', 'Проверь: 5 != 3.', '', ['print(5 != 3)'], 'print(5 != 3)', [{t:'codeMatches',v:'!='},{t:'noError'}]);
+  add('Условия', 'Больше и меньше', '<p><code>&gt;</code> больше, <code>&lt;</code> меньше.</p>', 'Проверь: 10 > 5 и 3 < 7.', '', ['print(10 > 5, 3 < 7)'], 'print(10 > 5, 3 < 7)', [{t:'codeMatches',v:'>|<'},{t:'noError'}]);
+  add('Условия', 'Больше или равно', '<p><code>&gt;=</code> — больше или равно.</p>', 'Проверь: 5 >= 5.', '', ['print(5 >= 5)'], 'print(5 >= 5)', [{t:'codeMatches',v:'>='},{t:'noError'}]);
+  add('Условия', 'Меньше или равно', '<p><code>&lt;=</code> — меньше или равно.</p>', 'Проверь: 3 <= 5.', '', ['print(3 <= 5)'], 'print(3 <= 5)', [{t:'codeMatches',v:'<='},{t:'noError'}]);
+  add('Условия', 'Логическое И', '<p><code>and</code> — оба условия верны.</p>', 'Проверь: 5 > 3 and 5 < 10.', '', ['print(5 > 3 and 5 < 10)'], 'print(5 > 3 and 5 < 10)', [{t:'codeMatches',v:'and'},{t:'noError'}]);
+  add('Условия', 'Логическое ИЛИ', '<p><code>or</code> — хотя бы одно верно.</p>', 'Проверь: 5 > 10 or 5 > 3.', '', ['print(5 > 10 or 5 > 3)'], 'print(5 > 10 or 5 > 3)', [{t:'codeMatches',v:'or'},{t:'noError'}]);
+  add('Условия', 'Логическое НЕ', '<p><code>not</code> — инверсия.</p>', 'Проверь: not False.', '', ['print(not False)'], 'print(not False)', [{t:'codeMatches',v:'not'},{t:'noError'}]);
+  add('Условия', 'Проверка на True', '<p><code>bool()</code> — проверка на истинность.</p>', 'Выведи bool(0) и bool(1).', '', ['print(bool(0), bool(1))'], 'print(bool(0), bool(1))', [{t:'codeIncludes',v:'bool('},{t:'noError'}]);
+  add('Условия', 'Вложенные условия', '<p>Условия можно вкладывать друг в друга.</p>', 'Сделай вложенное условие.', '', ['x = 5\nif x > 0:\n    if x < 10:\n        print("от 0 до 10")'], 'x = 5\nif x > 0:\n    if x < 10:\n        print("от 0 до 10")', [{t:'codeIncludes',v:'if '},{t:'noError'}]);
+  add('Условия', 'Тернарный оператор', '<p>Короткая запись: <code>a if условие else b</code>.</p>', 'Выведи "Да" if 5>3 else "Нет".', '', ['print("Да" if 5 > 3 else "Нет")'], 'print("Да" if 5 > 3 else "Нет")', [{t:'codeMatches',v:'if.*else'},{t:'noError'}]);
+  add('Условия', 'Проверка на None', '<p>Проверка: <code>is None</code>.</p>', 'Проверь is None.', '', ['x = None\nprint(x is None)'], 'x = None\nprint(x is None)', [{t:'codeMatches',v:'is None'},{t:'noError'}]);
+
+  // ЦИКЛЫ (15 уроков)
+  add('Циклы', 'Цикл for', '<p><code>for</code> проходит по последовательности.</p>', 'Выведи числа от 0 до 4.', '', ['for i in range(5):\n    print(i)'], 'for i in range(5):\n    print(i)', [{t:'codeIncludes',v:'for '},{t:'outputLines',v:5}]);
+  add('Циклы', 'range с началом', '<p><code>range(2, 5)</code> — числа 2,3,4.</p>', 'Выведи числа от 2 до 4.', '', ['for i in range(2, 5):\n    print(i)'], 'for i in range(2, 5):\n    print(i)', [{t:'codeIncludes',v:'range(2, 5)'},{t:'outputLines',v:3}]);
+  add('Циклы', 'range с шагом', '<p><code>range(0, 10, 2)</code> — шаг 2.</p>', 'Выведи чётные от 0 до 8.', '', ['for i in range(0, 10, 2):\n    print(i)'], 'for i in range(0, 10, 2):\n    print(i)', [{t:'codeIncludes',v:'range(0, 10, 2)'},{t:'outputLines',v:5}]);
+  add('Циклы', 'Цикл while', '<p><code>while</code> повторяет пока условие верно.</p>', 'Выведи числа от 1 до 5 через while.', '', ['i = 1\nwhile i <= 5:\n    print(i)\n    i += 1'], 'i = 1\nwhile i <= 5:\n    print(i)\n    i += 1', [{t:'codeIncludes',v:'while'},{t:'outputLines',v:5}]);
+  add('Циклы', 'break — выход', '<p><code>break</code> останавливает цикл.</p>', 'Останови цикл на i == 3.', '', ['for i in range(10):\n    if i == 3:\n        break\n    print(i)'], 'for i in range(10):\n    if i == 3:\n        break\n    print(i)', [{t:'codeIncludes',v:'break'},{t:'noError'}]);
+  add('Циклы', 'continue — пропуск', '<p><code>continue</code> пропускает итерацию.</p>', 'Пропусти чётные числа.', '', ['for i in range(5):\n    if i % 2 == 0:\n        continue\n    print(i)'], 'for i in range(5):\n    if i % 2 == 0:\n        continue\n    print(i)', [{t:'codeIncludes',v:'continue'},{t:'noError'}]);
+  add('Циклы', 'else в цикле', '<p>else выполняется если break не сработал.</p>', 'Добавь else к циклу.', '', ['for i in range(3):\n    print(i)\nelse:\n    print("Готово")'], 'for i in range(3):\n    print(i)\nelse:\n    print("Готово")', [{t:'codeIncludes',v:'else'},{t:'noError'}]);
+  add('Циклы', 'Вложенные циклы', '<p>Цикл внутри цикла.</p>', 'Выведи таблицу 2x2.', '', ['for i in range(2):\n    for j in range(2):\n        print(i, j)'], 'for i in range(2):\n    for j in range(2):\n        print(i, j)', [{t:'codeIncludes',v:'for '},{t:'outputLines',v:4}]);
+  add('Циклы', 'Сумма чисел', '<p>Суммируй числа в цикле.</p>', 'Посчитай сумму 1+2+3+4+5.', '', ['s = 0\nfor i in range(1, 6):\n    s += i\nprint(s)'], 's = 0\nfor i in range(1, 6):\n    s += i\nprint(s)', [{t:'codeIncludes',v:'+='},{t:'noError'}]);
+  add('Циклы', 'Произведение чисел', '<p>Перемножай в цикле.</p>', 'Посчитай 1*2*3*4*5.', '', ['p = 1\nfor i in range(1, 6):\n    p *= i\nprint(p)'], 'p = 1\nfor i in range(1, 6):\n    p *= i\nprint(p)', [{t:'codeIncludes',v:'*='},{t:'noError'}]);
+  add('Циклы', 'Счётчик', '<p>Подсчёт элементов.</p>', 'Посчитай сколько чисел от 1 до 10 делятся на 3.', '', ['c = 0\nfor i in range(1, 11):\n    if i % 3 == 0:\n        c += 1\nprint(c)'], 'c = 0\nfor i in range(1, 11):\n    if i % 3 == 0:\n        c += 1\nprint(c)', [{t:'codeIncludes',v:'+='},{t:'noError'}]);
+  add('Циклы', 'Поиск максимума', '<p>Найди максимальное число.</p>', 'Найди максимум из списка [3, 7, 2, 9].', '', ['nums = [3, 7, 2, 9]\nm = nums[0]\nfor n in nums:\n    if n > m:\n        m = n\nprint(m)'], 'nums = [3, 7, 2, 9]\nm = nums[0]\nfor n in nums:\n    if n > m:\n        m = n\nprint(m)', [{t:'codeIncludes',v:'for'},{t:'noError'}]);
+  add('Циклы', 'Поиск минимума', '<p>Найди минимальное число.</p>', 'Найди минимум из [5, 2, 8, 1].', '', ['nums = [5, 2, 8, 1]\nm = nums[0]\nfor n in nums:\n    if n < m:\n        m = n\nprint(m)'], 'nums = [5, 2, 8, 1]\nm = nums[0]\nfor n in nums:\n    if n < m:\n        m = n\nprint(m)', [{t:'codeIncludes',v:'for'},{t:'noError'}]);
+  add('Циклы', 'Бесконечный цикл', '<p>while True — бесконечный цикл, нужен break.</p>', 'Сделай бесконечный цикл с break.', '', ['i = 0\nwhile True:\n    if i >= 3:\n        break\n    print(i)\n    i += 1'], 'i = 0\nwhile True:\n    if i >= 3:\n        break\n    print(i)\n    i += 1', [{t:'codeIncludes',v:'while True'},{t:'noError'}]);
+  add('Циклы', 'Цикл по строке', '<p>Можно проходить по символам строки.</p>', 'Выведи каждый символ "abc".', '', ['for c in "abc":\n    print(c)'], 'for c in "abc":\n    print(c)', [{t:'codeIncludes',v:'for '},{t:'outputLines',v:3}]);
+
+  // СПИСКИ (15 уроков)
+  add('Списки', 'Создание списка', '<p>Список: <code>[1, 2, 3]</code>.</p>', 'Создай список из 3 элементов.', '', ['my_list = [1, 2, 3]\nprint(my_list)'], 'my_list = [1, 2, 3]\nprint(my_list)', [{t:'codeMatches',v:'\\[.*\\]'},{t:'noError'}]);
+  add('Списки', 'Доступ по индексу', '<p><code>[0]</code> — первый элемент.</p>', 'Выведи первый элемент списка.', '', ['nums = [10, 20, 30]\nprint(nums[0])'], 'nums = [10, 20, 30]\nprint(nums[0])', [{t:'codeMatches',v:'\\[\\d+\\]'},{t:'noError'}]);
+  add('Списки', 'Отрицательный индекс', '<p><code>[-1]</code> — последний элемент.</p>', 'Выведи последний элемент.', '', ['nums = [10, 20, 30]\nprint(nums[-1])'], 'nums = [10, 20, 30]\nprint(nums[-1])', [{t:'codeMatches',v:'\\[-\\d+\\]'},{t:'noError'}]);
+  add('Списки', 'Длина списка', '<p><code>len()</code> — длина списка.</p>', 'Выведи длину списка.', '', ['nums = [1, 2, 3, 4]\nprint(len(nums))'], 'nums = [1, 2, 3, 4]\nprint(len(nums))', [{t:'codeIncludes',v:'len('},{t:'noError'}]);
+  add('Списки', 'append — добавить', '<p><code>append()</code> добавляет в конец.</p>', 'Добавь элемент в список.', '', ['nums = [1, 2]\nnums.append(3)\nprint(nums)'], 'nums = [1, 2]\nnums.append(3)\nprint(nums)', [{t:'codeIncludes',v:'.append('},{t:'noError'}]);
+  add('Списки', 'insert — вставить', '<p><code>insert(pos, value)</code> вставляет в позицию.</p>', 'Вставь 99 на позицию 1.', '', ['nums = [1, 2, 3]\nnums.insert(1, 99)\nprint(nums)'], 'nums = [1, 2, 3]\nnums.insert(1, 99)\nprint(nums)', [{t:'codeIncludes',v:'.insert('},{t:'noError'}]);
+  add('Списки', 'remove — удалить', '<p><code>remove()</code> удаляет первое вхождение.</p>', 'Удали 2 из списка.', '', ['nums = [1, 2, 3]\nnums.remove(2)\nprint(nums)'], 'nums = [1, 2, 3]\nnums.remove(2)\nprint(nums)', [{t:'codeIncludes',v:'.remove('},{t:'noError'}]);
+  add('Списки', 'pop — извлечь', '<p><code>pop()</code> удаляет и возвращает элемент.</p>', 'Извлеки последний элемент.', '', ['nums = [1, 2, 3]\nx = nums.pop()\nprint(x, nums)'], 'nums = [1, 2, 3]\nx = nums.pop()\nprint(x, nums)', [{t:'codeIncludes',v:'.pop('},{t:'noError'}]);
+  add('Списки', 'Срез списка', '<p><code>[1:3]</code> — элементы с 1 до 2.</p>', 'Выведи срез списка.', '', ['nums = [10, 20, 30, 40]\nprint(nums[1:3])'], 'nums = [10, 20, 30, 40]\nprint(nums[1:3])', [{t:'codeMatches',v:'\\[\\d*:\\d*\\]'},{t:'noError'}]);
+  add('Списки', 'Сортировка', '<p><code>sort()</code> сортирует список.</p>', 'Отсортируй [3, 1, 2].', '', ['nums = [3, 1, 2]\nnums.sort()\nprint(nums)'], 'nums = [3, 1, 2]\nnums.sort()\nprint(nums)', [{t:'codeIncludes',v:'.sort('},{t:'noError'}]);
+  add('Списки', 'reverse — перевернуть', '<p><code>reverse()</code> переворачивает список.</p>', 'Переверни [1, 2, 3].', '', ['nums = [1, 2, 3]\nnums.reverse()\nprint(nums)'], 'nums = [1, 2, 3]\nnums.reverse()\nprint(nums)', [{t:'codeIncludes',v:'.reverse('},{t:'noError'}]);
+  add('Списки', 'count — подсчёт', '<p><code>count()</code> считает вхождения.</p>', 'Посчитай сколько раз 2 в [1, 2, 2, 3].', '', ['nums = [1, 2, 2, 3]\nprint(nums.count(2))'], 'nums = [1, 2, 2, 3]\nprint(nums.count(2))', [{t:'codeIncludes',v:'.count('},{t:'noError'}]);
+  add('Списки', 'index — поиск', '<p><code>index()</code> находит позицию.</p>', 'Найди индекс 20 в [10, 20, 30].', '', ['nums = [10, 20, 30]\nprint(nums.index(20))'], 'nums = [10, 20, 30]\nprint(nums.index(20))', [{t:'codeIncludes',v:'.index('},{t:'noError'}]);
+  add('Списки', 'Сумма списка', '<p><code>sum()</code> суммирует элементы.</p>', 'Выведи сумму [1, 2, 3].', '', ['print(sum([1, 2, 3]))'], 'print(sum([1, 2, 3]))', [{t:'codeIncludes',v:'sum('},{t:'noError'}]);
+  add('Списки', 'Список строк', '<p>Список может содержать строки.</p>', 'Создай список строк.', '', ['words = ["a", "b", "c"]\nprint(words)'], 'words = ["a", "b", "c"]\nprint(words)', [{t:'codeMatches',v:'\\[".*",\\s*".*"\\]'},{t:'noError'}]);
+
+  // СЛОВАРИ (10 уроков)
+  add('Словари', 'Создание словаря', '<p>Словарь: <code>{"ключ": "значение"}</code>.</p>', 'Создай словарь из 2 пар.', '', ['d = {"a": 1, "b": 2}\nprint(d)'], 'd = {"a": 1, "b": 2}\nprint(d)', [{t:'codeMatches',v:'\\{.*:.*\\}'},{t:'noError'}]);
+  add('Словари', 'Доступ по ключу', '<p>Доступ: <code>d["ключ"]</code>.</p>', 'Выведи значение по ключу.', '', ['d = {"name": "Анна"}\nprint(d["name"])'], 'd = {"name": "Анна"}\nprint(d["name"])', [{t:'codeMatches',v:'\\[[\'"]\\w+[\'"]\\]'},{t:'noError'}]);
+  add('Словари', 'Добавление ключа', '<p>Присвоение нового ключа добавляет его.</p>', 'Добавь ключ "age".', '', ['d = {"name": "Анна"}\nd["age"] = 25\nprint(d)'], 'd = {"name": "Анна"}\nd["age"] = 25\nprint(d)', [{t:'codeMatches',v:'\\[[\'"]\\w+[\'"]\\]\\s*='},{t:'noError'}]);
+  add('Словари', 'keys — все ключи', '<p><code>keys()</code> возвращает ключи.</p>', 'Выведи все ключи словаря.', '', ['d = {"a": 1, "b": 2}\nprint(list(d.keys()))'], 'd = {"a": 1, "b": 2}\nprint(list(d.keys()))', [{t:'codeIncludes',v:'.keys()'},{t:'noError'}]);
+  add('Словари', 'values — все значения', '<p><code>values()</code> возвращает значения.</p>', 'Выведи все значения.', '', ['d = {"a": 1, "b": 2}\nprint(list(d.values()))'], 'd = {"a": 1, "b": 2}\nprint(list(d.values()))', [{t:'codeIncludes',v:'.values()'},{t:'noError'}]);
+  add('Словари', 'items — пары', '<p><code>items()</code> возвращает пары.</p>', 'Выведи все пары.', '', ['d = {"a": 1, "b": 2}\nprint(list(d.items()))'], 'd = {"a": 1, "b": 2}\nprint(list(d.items()))', [{t:'codeIncludes',v:'.items()'},{t:'noError'}]);
+  add('Словари', 'get — безопасный доступ', '<p><code>get()</code> возвращает None если ключа нет.</p>', 'Используй get для доступа.', '', ['d = {"a": 1}\nprint(d.get("b", 0))'], 'd = {"a": 1}\nprint(d.get("b", 0))', [{t:'codeIncludes',v:'.get('},{t:'noError'}]);
+  add('Словари', 'Проверка ключа', '<p><code>in</code> проверяет наличие ключа.</p>', 'Проверь есть ли "a" в словаре.', '', ['d = {"a": 1}\nprint("a" in d)'], 'd = {"a": 1}\nprint("a" in d)', [{t:'codeMatches',v:'in'},{t:'noError'}]);
+  add('Словари', 'Удаление ключа', '<p><code>del</code> удаляет ключ.</p>', 'Удали ключ "a".', '', ['d = {"a": 1, "b": 2}\ndel d["a"]\nprint(d)'], 'd = {"a": 1, "b": 2}\ndel d["a"]\nprint(d)', [{t:'codeIncludes',v:'del '},{t:'noError'}]);
+  add('Словари', 'Вложенные словари', '<p>Словарь внутри словаря.</p>', 'Создай вложенный словарь.', '', ['d = {"a": {"b": 1}}\nprint(d["a"]["b"])'], 'd = {"a": {"b": 1}}\nprint(d["a"]["b"])', [{t:'codeMatches',v:'\\[\\[.*\\]\\[.*\\]\\]|\\[[\'"]\\w+[\'"]\\]\\[[\'"]\\w+[\'"]\\]'},{t:'noError'}]);
+
+  // ФУНКЦИИ (15 уроков)
+  add('Функции', 'Создание функции', '<p><code>def</code> создаёт функцию.</p>', 'Создай функцию и вызови её.', '', ['def hello():\n    print("Привет")\n\nhello()'], 'def hello():\n    print("Привет")\n\nhello()', [{t:'codeIncludes',v:'def '},{t:'noError'},{t:'outputNotEmpty'}]);
+  add('Функции', 'Параметры', '<p>Функция может принимать параметры.</p>', 'Создай функцию с параметром.', '', ['def greet(name):\n    print("Привет,", name)\n\ngreet("Мир")'], 'def greet(name):\n    print("Привет,", name)\n\ngreet("Мир")', [{t:'codeIncludes',v:'def '},{t:'noError'}]);
+  add('Функции', 'return — возврат', '<p><code>return</code> возвращает значение.</p>', 'Создай функцию с return.', '', ['def add(a, b):\n    return a + b\n\nprint(add(2, 3))'], 'def add(a, b):\n    return a + b\n\nprint(add(2, 3))', [{t:'codeIncludes',v:'return'},{t:'noError'}]);
+  add('Функции', 'Параметры по умолчанию', '<p>Параметр может иметь значение по умолчанию.</p>', 'Создай функцию с параметром по умолчанию.', '', ['def greet(name="Мир"):\n    print("Привет,", name)\n\ngreet()\ngreet("Анна")'], 'def greet(name="Мир"):\n    print("Привет,", name)\n\ngreet()\ngreet("Анна")', [{t:'codeMatches',v:'def\\s+\\w+\\([^)]*=[^)]*\\)'},{t:'noError'}]);
+  add('Функции', 'Несколько параметров', '<p>Функция может принимать несколько параметров.</p>', 'Создай функцию с 2 параметрами.', '', ['def add(a, b):\n    return a + b\n\nprint(add(2, 3))'], 'def add(a, b):\n    return a + b\n\nprint(add(2, 3))', [{t:'codeMatches',v:'def\\s+\\w+\\([^,]+,[^)]+\\)'},{t:'noError'}]);
+  add('Функции', 'Документация', '<p>Docstring — строка документации.</p>', 'Добавь docstring к функции.', '', ['def add(a, b):\n    """Складывает два числа."""\n    return a + b\n\nprint(add(1, 2))'], 'def add(a, b):\n    """Складывает два числа."""\n    return a + b\n\nprint(add(1, 2))', [{t:'codeMatches',v:'"""'},{t:'noError'}]);
+  add('Функции', 'Лямбда-функция', '<p><code>lambda</code> — короткая функция.</p>', 'Создай лямбду для умножения.', '', ['f = lambda x: x * 2\nprint(f(5))'], 'f = lambda x: x * 2\nprint(f(5))', [{t:'codeIncludes',v:'lambda'},{t:'noError'}]);
+  add('Функции', 'Рекурсия', '<p>Функция может вызывать саму себя.</p>', 'Создай рекурсивный факториал.', '', ['def fact(n):\n    if n <= 1:\n        return 1\n    return n * fact(n - 1)\n\nprint(fact(5))'], 'def fact(n):\n    if n <= 1:\n        return 1\n    return n * fact(n - 1)\n\nprint(fact(5))', [{t:'codeIncludes',v:'def '},{t:'noError'}]);
+  add('Функции', 'Глобальные переменные', '<p><code>global</code> — доступ к глобальной переменной.</p>', 'Используй global в функции.', '', ['x = 10\ndef change():\n    global x\n    x = 20\n\nchange()\nprint(x)'], 'x = 10\ndef change():\n    global x\n    x = 20\n\nchange()\nprint(x)', [{t:'codeIncludes',v:'global'},{t:'noError'}]);
+  add('Функции', 'Возврат нескольких значений', '<p>Функция может вернуть кортеж.</p>', 'Верни два значения из функции.', '', ['def min_max(nums):\n    return min(nums), max(nums)\n\nprint(min_max([3, 1, 2]))'], 'def min_max(nums):\n    return min(nums), max(nums)\n\nprint(min_max([3, 1, 2]))', [{t:'codeMatches',v:'return.*,.*'},{t:'noError'}]);
+  add('Функции', 'args — произвольные аргументы', '<p><code>*args</code> — много аргументов.</p>', 'Создай функцию с *args.', '', ['def sum_all(*args):\n    return sum(args)\n\nprint(sum_all(1, 2, 3, 4))'], 'def sum_all(*args):\n    return sum(args)\n\nprint(sum_all(1, 2, 3, 4))', [{t:'codeIncludes',v:'*args'},{t:'noError'}]);
+  add('Функции', 'kwargs — именованные аргументы', '<p><code>**kwargs</code> — именованные аргументы.</p>', 'Создай функцию с **kwargs.', '', ['def show(**kwargs):\n    print(kwargs)\n\nshow(a=1, b=2)'], 'def show(**kwargs):\n    print(kwargs)\n\nshow(a=1, b=2)', [{t:'codeIncludes',v:'**kwargs'},{t:'noError'}]);
+  add('Функции', 'Декораторы', '<p>Декоратор — функция, которая оборачивает другую.</p>', 'Создай простой декоратор.', '', ['def deco(func):\n    def wrapper():\n        print("до")\n        func()\n        print("после")\n    return wrapper\n\n@deco\ndef hello():\n    print("привет")\n\nhello()'], 'def deco(func):\n    def wrapper():\n        print("до")\n        func()\n        print("после")\n    return wrapper\n\n@deco\ndef hello():\n    print("привет")\n\nhello()', [{t:'codeIncludes',v:'@'},{t:'noError'}]);
+  add('Функции', 'map', '<p><code>map()</code> применяет функцию к каждому элементу.</p>', 'Используй map для удвоения.', '', ['nums = [1, 2, 3]\nresult = list(map(lambda x: x * 2, nums))\nprint(result)'], 'nums = [1, 2, 3]\nresult = list(map(lambda x: x * 2, nums))\nprint(result)', [{t:'codeIncludes',v:'map('},{t:'noError'}]);
+  add('Функции', 'filter', '<p><code>filter()</code> отбирает элементы.</p>', 'Отбери чётные числа.', '', ['nums = [1, 2, 3, 4]\nresult = list(filter(lambda x: x % 2 == 0, nums))\nprint(result)'], 'nums = [1, 2, 3, 4]\nresult = list(filter(lambda x: x % 2 == 0, nums))\nprint(result)', [{t:'codeIncludes',v:'filter('},{t:'noError'}]);
+
+  // СТРОКИ (10 уроков)
+  add('Строки', 'Срезы строк', '<p><code>[start:end]</code> — срез строки.</p>', 'Выведи первые 3 буквы "Python".', '', ['print("Python"[0:3])'], 'print("Python"[0:3])', [{t:'codeMatches',v:'\\[\\d*:\\d*\\]'},{t:'noError'}]);
+  add('Строки', 'replace — замена', '<p><code>replace()</code> заменяет подстроку.</p>', 'Замени "мир" на "все".', '', ['print("Привет, мир!".replace("мир", "все"))'], 'print("Привет, мир!".replace("мир", "все"))', [{t:'codeIncludes',v:'.replace('},{t:'noError'}]);
+  add('Строки', 'split — разбиение', '<p><code>split()</code> разбивает строку на список.</p>', 'Разбей "a,b,c" по запятой.', '', ['print("a,b,c".split(","))'], 'print("a,b,c".split(","))', [{t:'codeIncludes',v:'.split('},{t:'noError'}]);
+  add('Строки', 'strip — обрезка', '<p><code>strip()</code> убирает пробелы по краям.</p>', 'Обрежь пробелы у "  текст  ".', '', ['print("  текст  ".strip())'], 'print("  текст  ".strip())', [{t:'codeIncludes',v:'.strip('},{t:'noError'}]);
+  add('Строки', 'find — поиск', '<p><code>find()</code> находит позицию подстроки.</p>', 'Найди позицию "мир" в "Привет, мир!".', '', ['print("Привет, мир!".find("мир"))'], 'print("Привет, мир!".find("мир"))', [{t:'codeIncludes',v:'.find('},{t:'noError'}]);
+  add('Строки', 'startswith — начало', '<p><code>startswith()</code> проверяет начало строки.</p>', 'Проверь начало "Python".', '', ['print("Python".startswith("Py"))'], 'print("Python".startswith("Py"))', [{t:'codeIncludes',v:'.startswith('},{t:'noError'}]);
+  add('Строки', 'endswith — конец', '<p><code>endswith()</code> проверяет конец строки.</p>', 'Проверь конец "Python".', '', ['print("Python".endswith("on"))'], 'print("Python".endswith("on"))', [{t:'codeIncludes',v:'.endswith('},{t:'noError'}]);
+  add('Строки', 'isdigit — цифра', '<p><code>isdigit()</code> проверяет цифры.</p>', 'Проверь "123".isdigit().', '', ['print("123".isdigit())'], 'print("123".isdigit())', [{t:'codeIncludes',v:'.isdigit('},{t:'noError'}]);
+  add('Строки', 'format — форматирование', '<p><code>format()</code> вставляет значения.</p>', 'Используй format для вставки.', '', ['print("{} и {}".format("a", "b"))'], 'print("{} и {}".format("a", "b"))', [{t:'codeIncludes',v:'.format('},{t:'noError'}]);
+  add('Строки', 'f-строки', '<p><code>f"..."</code> — вставка переменных.</p>', 'Используй f-строку.', '', ['name = "Мир"\nprint(f"Привет, {name}!")'], 'name = "Мир"\nprint(f"Привет, {name}!")', [{t:'codeMatches',v:'f["\'][^"\']*\\{'},{t:'noError'}]);
+
+  // МОДУЛИ (10 уроков)
+  add('Модули', 'import', '<p><code>import</code> подключает модуль.</p>', 'Импортируй random.', '', ['import random\nprint(random.randint(1, 6))'], 'import random\nprint(random.randint(1, 6))', [{t:'codeIncludes',v:'import '},{t:'noError'}]);
+  add('Модули', 'import as', '<p>Сокращённое имя модуля.</p>', 'Импортируй random как r.', '', ['import random as r\nprint(r.randint(1, 6))'], 'import random as r\nprint(r.randint(1, 6))', [{t:'codeMatches',v:'import.*as'},{t:'noError'}]);
+  add('Модули', 'from import', '<p><code>from module import name</code>.</p>', 'Импортируй sqrt из math.', '', ['from math import sqrt\nprint(sqrt(16))'], 'from math import sqrt\nprint(sqrt(16))', [{t:'codeMatches',v:'from.*import'},{t:'noError'}]);
+  add('Модули', 'math — математика', '<p>Модуль math содержит функции.</p>', 'Выведи pi из math.', '', ['import math\nprint(math.pi)'], 'import math\nprint(math.pi)', [{t:'codeIncludes',v:'math.'},{t:'noError'}]);
+  add('Модули', 'random — случайные числа', '<p>random генерирует случайные числа.</p>', 'Выведи случайное число от 1 до 10.', '', ['import random\nprint(random.randint(1, 10))'], 'import random\nprint(random.randint(1, 10))', [{t:'codeIncludes',v:'random.'},{t:'noError'}]);
+  add('Модули', 'datetime — даты', '<p>datetime для работы с датами.</p>', 'Выведи текущую дату.', '', ['from datetime import date\nprint(date.today())'], 'from datetime import date\nprint(date.today())', [{t:'codeIncludes',v:'datetime'},{t:'noError'}]);
+  add('Модули', 'os — система', '<p>os — работа с операционной системой.</p>', 'Выведи текущую директорию.', '', ['import os\nprint(os.getcwd())'], 'import os\nprint(os.getcwd())', [{t:'codeIncludes',v:'os.'},{t:'noError'}]);
+  add('Модули', 'json — данные', '<p>json — работа с JSON.</p>', 'Преврати словарь в JSON.', '', ['import json\nd = {"a": 1}\nprint(json.dumps(d))'], 'import json\nd = {"a": 1}\nprint(json.dumps(d))', [{t:'codeIncludes',v:'json.'},{t:'noError'}]);
+  add('Модули', 'Создание модуля', '<p>Можно создать свой модуль.</p>', 'Создай простой модуль.', '', ['def hello():\n    print("Привет из модуля")\n\nhello()'], 'def hello():\n    print("Привет из модуля")\n\nhello()', [{t:'codeIncludes',v:'def '},{t:'noError'}]);
+  add('Модули', 'Список модулей', '<p>sys.modules — загруженные модули.</p>', 'Выведи количество загруженных модулей.', '', ['import sys\nprint(len(sys.modules))'], 'import sys\nprint(len(sys.modules))', [{t:'codeIncludes',v:'sys.'},{t:'noError'}]);
+
+  // РАБОТА С ФАЙЛАМИ (10 уроков)
+  add('Файлы', 'Запись в файл', '<p><code>open("f", "w")</code> — запись.</p>', 'Запиши строку в файл.', '', ['with open("test.txt", "w") as f:\n    f.write("Привет")'], 'with open("test.txt", "w") as f:\n    f.write("Привет")', [{t:'codeIncludes',v:'open('},{t:'noError'}]);
+  add('Файлы', 'Чтение файла', '<p><code>open("f", "r")</code> — чтение.</p>', 'Прочитай файл.', '', ['with open("test.txt", "r") as f:\n    print(f.read())'], 'with open("test.txt", "r") as f:\n    print(f.read())', [{t:'codeIncludes',v:'open('},{t:'noError'}]);
+  add('Файлы', 'Добавление в файл', '<p><code>open("f", "a")</code> — добавление.</p>', 'Добавь строку в файл.', '', ['with open("test.txt", "a") as f:\n    f.write("Дополнение")'], 'with open("test.txt", "a") as f:\n    f.write("Дополнение")', [{t:'codeIncludes',v:'open('},{t:'noError'}]);
+  add('Файлы', 'Чтение построчно', '<p><code>readlines()</code> — список строк.</p>', 'Прочитай файл построчно.', '', ['with open("test.txt", "r") as f:\n    lines = f.readlines()\n    print(len(lines))'], 'with open("test.txt", "r") as f:\n    lines = f.readlines()\n    print(len(lines))', [{t:'codeIncludes',v:'readlines('},{t:'noError'}]);
+  add('Файлы', 'Проверка существования', '<p><code>os.path.exists()</code> — проверка.</p>', 'Проверь существует ли файл.', '', ['import os\nprint(os.path.exists("test.txt"))'], 'import os\nprint(os.path.exists("test.txt"))', [{t:'codeIncludes',v:'exists('},{t:'noError'}]);
+  add('Файлы', 'Удаление файла', '<p><code>os.remove()</code> — удаление.</p>', 'Удали файл test.txt.', '', ['import os\nos.remove("test.txt")'], 'import os\nos.remove("test.txt")', [{t:'codeIncludes',v:'remove('},{t:'noError'}]);
+  add('Файлы', 'Переименование', '<p><code>os.rename()</code> — переименование.</p>', 'Переименуй файл.', '', ['import os\nos.rename("old.txt", "new.txt")'], 'import os\nos.rename("old.txt", "new.txt")', [{t:'codeIncludes',v:'rename('},{t:'noError'}]);
+  add('Файлы', 'Запись списка', '<p><code>writelines()</code> — запись списка.</p>', 'Запиши список в файл.', '', ['with open("test.txt", "w") as f:\n    f.writelines(["a\\n", "b\\n"])'], 'with open("test.txt", "w") as f:\n    f.writelines(["a\\n", "b\\n"])', [{t:'codeIncludes',v:'writelines('},{t:'noError'}]);
+  add('Файлы', 'Менеджер контекста', '<p><code>with</code> сам закрывает файл.</p>', 'Используй with для записи.', '', ['with open("test.txt", "w") as f:\n    f.write("текст")'], 'with open("test.txt", "w") as f:\n    f.write("текст")', [{t:'codeIncludes',v:'with open('},{t:'noError'}]);
+  add('Файлы', 'Чтение одного символа', '<p><code>read(1)</code> — один символ.</p>', 'Прочитай первый символ.', '', ['with open("test.txt", "r") as f:\n    print(f.read(1))'], 'with open("test.txt", "r") as f:\n    print(f.read(1))', [{t:'codeIncludes',v:'read(1)'},{t:'noError'}]);
+
+  // ООП (10 уроков)
+  add('ООП', 'Класс', '<p>Класс — шаблон для объектов.</p>', 'Создай простой класс.', '', ['class MyClass:\n    pass\n\nobj = MyClass()\nprint(type(obj))'], 'class MyClass:\n    pass\n\nobj = MyClass()\nprint(type(obj))', [{t:'codeIncludes',v:'class '},{t:'noError'}]);
+  add('ООП', 'Конструктор __init__', '<p><code>__init__</code> — инициализация.</p>', 'Создай класс с __init__.', '', ['class Person:\n    def __init__(self, name):\n        self.name = name\n\np = Person("Анна")\nprint(p.name)'], 'class Person:\n    def __init__(self, name):\n        self.name = name\n\np = Person("Анна")\nprint(p.name)', [{t:'codeIncludes',v:'__init__'},{t:'noError'}]);
+  add('ООП', 'Методы', '<p>Методы — функции внутри класса.</p>', 'Добавь метод в класс.', '', ['class Dog:\n    def bark(self):\n        return "Гав!"\n\nd = Dog()\nprint(d.bark())'], 'class Dog:\n    def bark(self):\n        return "Гав!"\n\nd = Dog()\nprint(d.bark())', [{t:'codeIncludes',v:'def '},{t:'noError'}]);
+  add('ООП', 'Атрибуты', '<p>Атрибуты — данные объекта.</p>', 'Создай объект с атрибутами.', '', ['class Car:\n    def __init__(self, color):\n        self.color = color\n\nc = Car("красный")\nprint(c.color)'], 'class Car:\n    def __init__(self, color):\n        self.color = color\n\nc = Car("красный")\nprint(c.color)', [{t:'codeIncludes',v:'self.'},{t:'noError'}]);
+  add('ООП', 'Наследование', '<p>Класс может наследовать другой класс.</p>', 'Создай класс-наследник.', '', ['class Animal:\n    def speak(self):\n        return "..."\n\nclass Dog(Animal):\n    def speak(self):\n        return "Гав!"\n\nd = Dog()\nprint(d.speak())'], 'class Animal:\n    def speak(self):\n        return "..."\n\nclass Dog(Animal):\n    def speak(self):\n        return "Гав!"\n\nd = Dog()\nprint(d.speak())', [{t:'codeMatches',v:'class\\s+\\w+\\(\\w+\\)'},{t:'noError'}]);
+  add('ООП', 'super()', '<p><code>super()</code> вызывает метод родителя.</p>', 'Используй super().', '', ['class A:\n    def __init__(self):\n        self.x = 1\n\nclass B(A):\n    def __init__(self):\n        super().__init__()\n        self.y = 2\n\nb = B()\nprint(b.x, b.y)'], 'class A:\n    def __init__(self):\n        self.x = 1\n\nclass B(A):\n    def __init__(self):\n        super().__init__()\n        self.y = 2\n\nb = B()\nprint(b.x, b.y)', [{t:'codeIncludes',v:'super()'},{t:'noError'}]);
+  add('ООП', 'Полиморфизм', '<p>Разные классы — одинаковый интерфейс.</p>', 'Создай полиморфный код.', '', ['class Cat:\n    def speak(self):\n        return "Мяу"\n\nclass Dog:\n    def speak(self):\n        return "Гав"\n\nanimals = [Cat(), Dog()]\nfor a in animals:\n    print(a.speak())'], 'class Cat:\n    def speak(self):\n        return "Мяу"\n\nclass Dog:\n    def speak(self):\n        return "Гав"\n\nanimals = [Cat(), Dog()]\nfor a in animals:\n    print(a.speak())', [{t:'codeIncludes',v:'class '},{t:'noError'}]);
+  add('ООП', 'Инкапсуляция', '<p>Скрытие данных через _.</p>', 'Создай защищённый атрибут.', '', ['class Bank:\n    def __init__(self):\n        self._balance = 100\n\nb = Bank()\nprint(b._balance)'], 'class Bank:\n    def __init__(self):\n        self._balance = 100\n\nb = Bank()\nprint(b._balance)', [{t:'codeIncludes',v:'_'},{t:'noError'}]);
+  add('ООП', 'Статические методы', '<p><code>@staticmethod</code> — метод без self.</p>', 'Создай статический метод.', '', ['class Math:\n    @staticmethod\n    def add(a, b):\n        return a + b\n\nprint(Math.add(2, 3))'], 'class Math:\n    @staticmethod\n    def add(a, b):\n        return a + b\n\nprint(Math.add(2, 3))', [{t:'codeIncludes',v:'@staticmethod'},{t:'noError'}]);
+  add('ООП', 'Магические методы', '<p><code>__str__</code> — строковое представление.</p>', 'Создай __str__.', '', ['class Person:\n    def __str__(self):\n        return "Человек"\n\np = Person()\nprint(p)'], 'class Person:\n    def __str__(self):\n        return "Человек"\n\np = Person()\nprint(p)', [{t:'codeIncludes',v:'__str__'},{t:'noError'}]);
+
+  // ОБРАБОТКА ОШИБОК (10 уроков)
+  add('Ошибки', 'try/except', '<p><code>try</code> — попробовать, <code>except</code> — поймать.</p>', 'Оберни ошибку в try/except.', '', ['try:\n    print(10 / 0)\nexcept:\n    print("Ошибка")'], 'try:\n    print(10 / 0)\nexcept:\n    print("Ошибка")', [{t:'codeIncludes',v:'try:'},{t:'codeIncludes',v:'except'},{t:'noError'}]);
+  add('Ошибки', 'Типы ошибок', '<p>Можно ловить конкретные ошибки.</p>', 'Поймай ZeroDivisionError.', '', ['try:\n    print(10 / 0)\nexcept ZeroDivisionError:\n    print("Деление на ноль")'], 'try:\n    print(10 / 0)\nexcept ZeroDivisionError:\n    print("Деление на ноль")', [{t:'codeIncludes',v:'ZeroDivisionError'},{t:'noError'}]);
+  add('Ошибки', 'finally', '<p><code>finally</code> выполняется всегда.</p>', 'Добавь finally.', '', ['try:\n    print(10 / 2)\nexcept:\n    print("Ошибка")\nfinally:\n    print("Готово")'], 'try:\n    print(10 / 2)\nexcept:\n    print("Ошибка")\nfinally:\n    print("Готово")', [{t:'codeIncludes',v:'finally'},{t:'noError'}]);
+  add('Ошибки', 'else в try', '<p><code>else</code> если ошибки нет.</p>', 'Добавь else к try.', '', ['try:\n    x = 5\nexcept:\n    print("Ошибка")\nelse:\n    print("Всё ок:", x)'], 'try:\n    x = 5\nexcept:\n    print("Ошибка")\nelse:\n    print("Всё ок:", x)', [{t:'codeIncludes',v:'else'},{t:'noError'}]);
+  add('Ошибки', 'raise', '<p><code>raise</code> — выбросить ошибку.</p>', 'Выбрось ValueError.', '', ['raise ValueError("Сообщение")'], 'raise ValueError("Сообщение")', [{t:'codeIncludes',v:'raise'},{t:'hasError'}]);
+  add('Ошибки', 'Пользовательские ошибки', '<p>Можно создать свой класс ошибки.</p>', 'Создай свой класс ошибки.', '', ['class MyError(Exception):\n    pass\n\nraise MyError("Своя ошибка")'], 'class MyError(Exception):\n    pass\n\nraise MyError("Своя ошибка")', [{t:'codeIncludes',v:'Exception'},{t:'hasError'}]);
+  add('Ошибки', 'assert', '<p><code>assert</code> — проверка условия.</p>', 'Используй assert.', '', ['assert 5 > 3\nprint("Ок")'], 'assert 5 > 3\nprint("Ок")', [{t:'codeIncludes',v:'assert'},{t:'noError'}]);
+  add('Ошибки', 'except как', '<p><code>except Exception as e</code> — доступ к ошибке.</p>', 'Получи сообщение ошибки.', '', ['try:\n    print(10 / 0)\nexcept Exception as e:\n    print(e)'], 'try:\n    print(10 / 0)\nexcept Exception as e:\n    print(e)', [{t:'codeIncludes',v:'as e'},{t:'noError'}]);
+  add('Ошибки', 'Несколько except', '<p>Разные except для разных ошибок.</p>', 'Обработай две ошибки.', '', ['try:\n    x = int("abc")\nexcept ValueError:\n    print("Не число")\nexcept TypeError:\n    print("Неверный тип")'], 'try:\n    x = int("abc")\nexcept ValueError:\n    print("Не число")\nexcept TypeError:\n    print("Неверный тип")', [{t:'codeIncludes',v:'except'},{t:'noError'}]);
+  add('Ошибки', 'except без типа', '<p>Голый except ловит всё.</p>', 'Используй except без типа.', '', ['try:\n    print(10 / 0)\nexcept:\n    print("Любая ошибка")'], 'try:\n    print(10 / 0)\nexcept:\n    print("Любая ошибка")', [{t:'codeIncludes',v:'except:'},{t:'noError'}]);
+  
+  return lessons;
+}
+
+// Генератор уроков для Java (80+)
+function generateJavaLessons(){
+  const lessons = [];
+  const add = (sec, title, theory, task, starter, hints, solution, rules) => {
+    lessons.push({sec, title, theory, task, starter, hints, solution, rules});
+  };
+  
+  const mainTemplate = 'public class Main {\n    public static void main(String[] args) {\n        %CODE%\n    }\n}';
+  
+  add('Основы', 'Привет, мир!', '<p>Java — строгий язык. Всё в классах.</p>', 'Выведи "Привет, мир!"', 'public class Main {\n    public static void main(String[] args) {\n        // код\n    }\n}', ['System.out.println("текст");'], 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Привет, мир!");\n    }\n}', [{t:'codeIncludes',v:'System.out.println'},{t:'noError'},{t:'outputNotEmpty'}]);
+  
+  add('Основы', 'Комментарии', '<p><code>//</code> — однострочный комментарий.</p>', 'Добавь комментарий.', 'public class Main {\n    public static void main(String[] args) {\n        // комментарий\n        System.out.println("Код");\n    }\n}', ['// комментарий'], 'public class Main {\n    public static void main(String[] args) {\n        // комментарий\n        System.out.println("Код");\n    }\n}', [{t:'codeMatches',v:'//'},{t:'noError'}]);
+  
+  add('Основы', 'Числа int', '<p><code>int</code> — целое число (32 бит).</p>', 'Выведи int.', 'public class Main {\n    public static void main(String[] args) {\n        int x = 42;\n        System.out.println(x);\n    }\n}', ['int x = 42;'], 'public class Main {\n    public static void main(String[] args) {\n        int x = 42;\n        System.out.println(x);\n    }\n}', [{t:'codeIncludes',v:'int '},{t:'noError'}]);
+  
+  add('Основы', 'Числа double', '<p><code>double</code> — дробное число.</p>', 'Выведи double.', 'public class Main {\n    public static void main(String[] args) {\n        double x = 3.14;\n        System.out.println(x);\n    }\n}', ['double x = 3.14;'], 'public class Main {\n    public static void main(String[] args) {\n        double x = 3.14;\n        System.out.println(x);\n    }\n}', [{t:'codeIncludes',v:'double '},{t:'noError'}]);
+  
+  add('Основы', 'Строки String', '<p><code>String</code> — строка.</p>', 'Выведи String.', 'public class Main {\n    public static void main(String[] args) {\n        String s = "Привет";\n        System.out.println(s);\n    }\n}', ['String s = "текст";'], 'public class Main {\n    public static void main(String[] args) {\n        String s = "Привет";\n        System.out.println(s);\n    }\n}', [{t:'codeIncludes',v:'String '},{t:'noError'}]);
+  
+  add('Основы', 'Сложение', '<p><code>+</code> складывает.</p>', 'Сложи два числа.', 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(5 + 3);\n    }\n}', ['System.out.println(5 + 3);'], 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(5 + 3);\n    }\n}', [{t:'codeMatches',v:'\\d+\\s*\\+\\s*\\d+'},{t:'noError'}]);
+  
+  add('Основы', 'Вычитание', '<p><code>-</code> вычитает.</p>', 'Вычти числа.', 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(10 - 4);\n    }\n}', ['System.out.println(10 - 4);'], 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(10 - 4);\n    }\n}', [{t:'codeMatches',v:'\\d+\\s*-\\s*\\d+'},{t:'noError'}]);
+  
+  add('Основы', 'Умножение', '<p><code>*</code> умножает.</p>', 'Умножь числа.', 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(5 * 4);\n    }\n}', ['System.out.println(5 * 4);'], 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(5 * 4);\n    }\n}', [{t:'codeMatches',v:'\\d+\\s*\\*\\s*\\d+'},{t:'noError'}]);
+  
+  add('Основы', 'Деление', '<p><code>/</code> делит.</p>', 'Раздели числа.', 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(10.0 / 2);\n    }\n}', ['System.out.println(10.0 / 2);'], 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(10.0 / 2);\n    }\n}', [{t:'codeMatches',v:'\\d+.*\\s*/\\s*\\d+'},{t:'noError'}]);
+  
+  add('Основы', 'Остаток от деления', '<p><code>%</code> — остаток.</p>', 'Выведи 10 % 3.', 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(10 % 3);\n    }\n}', ['System.out.println(10 % 3);'], 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(10 % 3);\n    }\n}', [{t:'codeMatches',v:'\\d+\\s*%\\s*\\d+'},{t:'noError'}]);
+  
+  add('Условия', 'if', '<p><code>if</code> — условие.</p>', 'Проверь условие.', 'public class Main {\n    public static void main(String[] args) {\n        int age = 20;\n        if (age >= 18) {\n            System.out.println("Взрослый");\n        }\n    }\n}', ['if (age >= 18) { ... }'], 'public class Main {\n    public static void main(String[] args) {\n        int age = 20;\n        if (age >= 18) {\n            System.out.println("Взрослый");\n        }\n    }\n}', [{t:'codeIncludes',v:'if ('},{t:'noError'}]);
+  
+  add('Условия', 'else', '<p><code>else</code> — иначе.</p>', 'Добавь else.', 'public class Main {\n    public static void main(String[] args) {\n        int age = 15;\n        if (age >= 18) {\n            System.out.println("Взрослый");\n        } else {\n            System.out.println("Ребёнок");\n        }\n    }\n}', ['else { ... }'], 'public class Main {\n    public static void main(String[] args) {\n        int age = 15;\n        if (age >= 18) {\n            System.out.println("Взрослый");\n        } else {\n            System.out.println("Ребёнок");\n        }\n    }\n}', [{t:'codeIncludes',v:'else'},{t:'noError'}]);
+  
+  add('Условия', 'else if', '<p><code>else if</code> — дополнительная проверка.</p>', 'Используй else if.', 'public class Main {\n    public static void main(String[] args) {\n        int x = 5;\n        if (x > 10) {\n            System.out.println("больше 10");\n        } else if (x > 3) {\n            System.out.println("больше 3");\n        }\n    }\n}', ['else if (...) { ... }'], 'public class Main {\n    public static void main(String[] args) {\n        int x = 5;\n        if (x > 10) {\n            System.out.println("больше 10");\n        } else if (x > 3) {\n            System.out.println("больше 3");\n        }\n    }\n}', [{t:'codeIncludes',v:'else if'},{t:'noError'}]);
+  
+  add('Условия', 'switch', '<p><code>switch</code> — выбор из вариантов.</p>', 'Используй switch.', 'public class Main {\n    public static void main(String[] args) {\n        int day = 2;\n        switch (day) {\n            case 1: System.out.println("Пн"); break;\n            case 2: System.out.println("Вт"); break;\n        }\n    }\n}', ['switch (x) { case 1: ... }'], 'public class Main {\n    public static void main(String[] args) {\n        int day = 2;\n        switch (day) {\n            case 1: System.out.println("Пн"); break;\n            case 2: System.out.println("Вт"); break;\n        }\n    }\n}', [{t:'codeIncludes',v:'switch'},{t:'noError'}]);
+  
+  add('Условия', 'Тернарный оператор', '<p><code>условие ? a : b</code>.</p>', 'Используй тернарный оператор.', 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(5 > 3 ? "Да" : "Нет");\n    }\n}', ['условие ? значение1 : значение2'], 'public class Main {\n    public static void main(String[] args) {\n        System.out.println(5 > 3 ? "Да" : "Нет");\n    }\n}', [{t:'codeMatches',v:'\\?.*:'},{t:'noError'}]);
+  
+  add('Циклы', 'for', '<p><code>for (int i = 0; i < n; i++)</code>.</p>', 'Выведи числа 0-4.', 'public class Main {\n    public static void main(String[] args) {\n        for (int i = 0; i < 5; i++) {\n            System.out.println(i);\n        }\n    }\n}', ['for (int i = 0; i < 5; i++) { ... }'], 'public class Main {\n    public static void main(String[] args) {\n        for (int i = 0; i < 5; i++) {\n            System.out.println(i);\n        }\n    }\n}', [{t:'codeIncludes',v:'for ('},{t:'outputLines',v:5}]);
+  
+  add('Циклы', 'while', '<p><code>while</code> — цикл с условием.</p>', 'Выведи числа через while.', 'public class Main {\n    public static void main(String[] args) {\n        int i = 0;\n        while (i < 5) {\n            System.out.println(i);\n            i++;\n        }\n    }\n}', ['while (условие) { ... }'], 'public class Main {\n    public static void main(String[] args) {\n        int i = 0;\n        while (i < 5) {\n            System.out.println(i);\n            i++;\n        }\n    }\n}', [{t:'codeIncludes',v:'while'},{t:'outputLines',v:5}]);
+  
+  add('Циклы', 'do-while', '<p><code>do-while</code> — выполняется минимум раз.</p>', 'Используй do-while.', 'public class Main {\n    public static void main(String[] args) {\n        int i = 0;\n        do {\n            System.out.println(i);\n            i++;\n        } while (i < 3);\n    }\n}', ['do { ... } while (...);'], 'public class Main {\n    public static void main(String[] args) {\n        int i = 0;\n        do {\n            System.out.println(i);\n            i++;\n        } while (i < 3);\n    }\n}', [{t:'codeIncludes',v:'do'},{t:'noError'}]);
+  
+  add('Циклы', 'break', '<p><code>break</code> выходит из цикла.</p>', 'Останови цикл.', 'public class Main {\n    public static void main(String[] args) {\n        for (int i = 0; i < 10; i++) {\n            if (i == 3) break;\n            System.out.println(i);\n        }\n    }\n}', ['if (i == 3) break;'], 'public class Main {\n    public static void main(String[] args) {\n        for (int i = 0; i < 10; i++) {\n            if (i == 3) break;\n            System.out.println(i);\n        }\n    }\n}', [{t:'codeIncludes',v:'break'},{t:'noError'}]);
+  
+  add('Циклы', 'continue', '<p><code>continue</code> пропускает итерацию.</p>', 'Пропусти чётные.', 'public class Main {\n    public static void main(String[] args) {\n        for (int i = 0; i < 5; i++) {\n            if (i % 2 == 0) continue;\n            System.out.println(i);\n        }\n    }\n}', ['if (i % 2 == 0) continue;'], 'public class Main {\n    public static void main(String[] args) {\n        for (int i = 0; i < 5; i++) {\n            if (i % 2 == 0) continue;\n            System.out.println(i);\n        }\n    }\n}', [{t:'codeIncludes',v:'continue'},{t:'noError'}]);
+  
+  add('Массивы', 'Создание массива', '<p><code>int[] arr = {1, 2, 3}</code>.</p>', 'Создай массив.', 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {1, 2, 3};\n        System.out.println(arr[0]);\n    }\n}', ['int[] arr = {1, 2, 3};'], 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {1, 2, 3};\n        System.out.println(arr[0]);\n    }\n}', [{t:'codeMatches',v:'\\[\\]'},{t:'noError'}]);
+  
+  add('Массивы', 'Длина массива', '<p><code>arr.length</code> — длина.</p>', 'Выведи длину массива.', 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {1, 2, 3, 4};\n        System.out.println(arr.length);\n    }\n}', ['arr.length'], 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {1, 2, 3, 4};\n        System.out.println(arr.length);\n    }\n}', [{t:'codeIncludes',v:'.length'},{t:'noError'}]);
+  
+  add('Массивы', 'Проход по массиву', '<p>Цикл for по массиву.</p>', 'Выведи все элементы.', 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {10, 20, 30};\n        for (int i = 0; i < arr.length; i++) {\n            System.out.println(arr[i]);\n        }\n    }\n}', ['for (int i = 0; i < arr.length; i++)'], 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {10, 20, 30};\n        for (int i = 0; i < arr.length; i++) {\n            System.out.println(arr[i]);\n        }\n    }\n}', [{t:'codeIncludes',v:'for'},{t:'outputLines',v:3}]);
+  
+  add('Массивы', 'forEach', '<p><code>for (int x : arr)</code> — для каждого.</p>', 'Используй forEach.', 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {10, 20, 30};\n        for (int x : arr) {\n            System.out.println(x);\n        }\n    }\n}', ['for (int x : arr) { ... }'], 'public class Main {\n    public static void main(String[] args) {\n        int[] arr = {10, 20, 30};\n        for (int x : arr) {\n            System.out.println(x);\n        }\n    }\n}', [{t:'codeMatches',v:'for\\s*\\(int\\s+\\w+\\s*:'},{t:'noError'}]);
+  
+  add('Методы', 'Создание метода', '<p>Метод — функция внутри класса.</p>', 'Создай метод.', 'public class Main {\n    static void hello() {\n        System.out.println("Привет");\n    }\n    public static void main(String[] args) {\n        hello();\n    }\n}', ['static void name() { ... }'], 'public class Main {\n    static void hello() {\n        System.out.println("Привет");\n    }\n    public static void main(String[] args) {\n        hello();\n    }\n}', [{t:'codeIncludes',v:'void'},{t:'noError'}]);
+  
+  add('Методы', 'Метод с параметрами', '<p>Метод может принимать параметры.</p>', 'Создай метод с параметром.', 'public class Main {\n    static void greet(String name) {\n        System.out.println("Привет, " + name);\n    }\n    public static void main(String[] args) {\n        greet("Мир");\n    }\n}', ['static void greet(String name) { ... }'], 'public class Main {\n    static void greet(String name) {\n        System.out.println("Привет, " + name);\n    }\n    public static void main(String[] args) {\n        greet("Мир");\n    }\n}', [{t:'codeIncludes',v:'void'},{t:'noError'}]);
+  
+  add('Методы', 'Возврат значения', '<p>Метод может возвращать значение.</p>', 'Создай метод с return.', 'public class Main {\n    static int add(int a, int b) {\n        return a + b;\n    }\n    public static void main(String[] args) {\n        System.out.println(add(2, 3));\n    }\n}', ['static int add(int a, int b) { return a + b; }'], 'public class Main {\n    static int add(int a, int b) {\n        return a + b;\n    }\n    public static void main(String[] args) {\n        System.out.println(add(2, 3));\n    }\n}', [{t:'codeIncludes',v:'return'},{t:'noError'}]);
+  
+  add('Методы', 'Перегрузка', '<p>Одно имя — разные параметры.</p>', 'Создай перегруженный метод.', 'public class Main {\n    static int add(int a, int b) {\n        return a + b;\n    }\n    static double add(double a, double b) {\n        return a + b;\n    }\n    public static void main(String[] args) {\n        System.out.println(add(1, 2));\n        System.out.println(add(1.5, 2.5));\n    }\n}', ['static int add(int a, int b)', 'static double add(double a, double b)'], 'public class Main {\n    static int add(int a, int b) {\n        return a + b;\n    }\n    static double add(double a, double b) {\n        return a + b;\n    }\n    public static void main(String[] args) {\n        System.out.println(add(1, 2));\n        System.out.println(add(1.5, 2.5));\n    }\n}', [{t:'codeIncludes',v:'add'},{t:'noError'}]);
+  
+  // Продолжаем добавлять Java уроки...
+  add('Классы', 'Создание класса', '<p>Класс — шаблон для объектов.</p>', 'Создай класс.', 'class Person {\n    String name;\n}\npublic class Main {\n    public static void main(String[] args) {\n        Person p = new Person();\n        p.name = "Анна";\n        System.out.println(p.name);\n    }\n}', ['class Name { ... }'], 'class Person {\n    String name;\n}\npublic class Main {\n    public static void main(String[] args) {\n        Person p = new Person();\n        p.name = "Анна";\n        System.out.println(p.name);\n    }\n}', [{t:'codeIncludes',v:'class '},{t:'noError'}]);
+  
+  add('Классы', 'Конструктор', '<p>Конструктор инициализирует объект.</p>', 'Создай конструктор.', 'class Person {\n    String name;\n    Person(String n) {\n        name = n;\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Person p = new Person("Анна");\n        System.out.println(p.name);\n    }\n}', ['ClassName(parameters) { ... }'], 'class Person {\n    String name;\n    Person(String n) {\n        name = n;\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Person p = new Person("Анна");\n        System.out.println(p.name);\n    }\n}', [{t:'codeIncludes',v:'Person('},{t:'noError'}]);
+  
+  add('Классы', 'Наследование', '<p><code>extends</code> — наследование.</p>', 'Создай наследника.', 'class Animal {\n    void speak() {\n        System.out.println("...");\n    }\n}\nclass Dog extends Animal {\n    void speak() {\n        System.out.println("Гав!");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Dog d = new Dog();\n        d.speak();\n    }\n}', ['class Child extends Parent { ... }'], 'class Animal {\n    void speak() {\n        System.out.println("...");\n    }\n}\nclass Dog extends Animal {\n    void speak() {\n        System.out.println("Гав!");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Dog d = new Dog();\n        d.speak();\n    }\n}', [{t:'codeIncludes',v:'extends'},{t:'noError'}]);
+  
+  add('Классы', 'Интерфейсы', '<p><code>interface</code> — контракт.</p>', 'Создай интерфейс.', 'interface Animal {\n    void speak();\n}\nclass Dog implements Animal {\n    public void speak() {\n        System.out.println("Гав!");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Dog d = new Dog();\n        d.speak();\n    }\n}', ['interface Name { ... }'], 'interface Animal {\n    void speak();\n}\nclass Dog implements Animal {\n    public void speak() {\n        System.out.println("Гав!");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Dog d = new Dog();\n        d.speak();\n    }\n}', [{t:'codeIncludes',v:'interface'},{t:'noError'}]);
+  
+  add('Классы', 'Абстрактные классы', '<p><code>abstract</code> — нельзя создать экземпляр.</p>', 'Создай абстрактный класс.', 'abstract class Shape {\n    abstract double area();\n}\nclass Circle extends Shape {\n    double area() {\n        return 3.14;\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Circle c = new Circle();\n        System.out.println(c.area());\n    }\n}', ['abstract class Name { ... }'], 'abstract class Shape {\n    abstract double area();\n}\nclass Circle extends Shape {\n    double area() {\n        return 3.14;\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Circle c = new Circle();\n        System.out.println(c.area());\n    }\n}', [{t:'codeIncludes',v:'abstract'},{t:'noError'}]);
+  
+  return lessons;
+}
+
+// Генератор уроков для Kotlin (70+)
+function generateKotlinLessons(){
+  const lessons = [];
+  const add = (sec, title, theory, task, starter, hints, solution, rules) => {
+    lessons.push({sec, title, theory, task, starter, hints, solution, rules});
+  };
+  
+  add('Основы', 'Привет, мир!', '<p><code>fun main()</code> — точка входа. <code>println</code> — вывод.</p>', 'Выведи приветствие.', 'fun main() {\n    // код\n}', ['println("текст")'], 'fun main() {\n    println("Привет, мир!")\n}', [{t:'codeIncludes',v:'println'},{t:'noError'},{t:'outputNotEmpty'}]);
+  
+  add('Основы', 'val — неизменяемая', '<p><code>val</code> — значение нельзя изменить.</p>', 'Создай val.', 'fun main() {\n    val x = 42\n    println(x)\n}', ['val x = 42'], 'fun main() {\n    val x = 42\n    println(x)\n}', [{t:'codeIncludes',v:'val '},{t:'noError'}]);
+  
+  add('Основы', 'var — изменяемая', '<p><code>var</code> — значение можно менять.</p>', 'Создай var.', 'fun main() {\n    var x = 5\n    x = 10\n    println(x)\n}', ['var x = 5'], 'fun main() {\n    var x = 5\n    x = 10\n    println(x)\n}', [{t:'codeIncludes',v:'var '},{t:'noError'}]);
+  
+  add('Основы', 'Типы данных', '<p>Int, Double, String, Boolean.</p>', 'Выведи разные типы.', 'fun main() {\n    val i: Int = 42\n    val d: Double = 3.14\n    val s: String = "текст"\n    val b: Boolean = true\n    println(i)\n    println(d)\n    println(s)\n    println(b)\n}', ['Int, Double, String, Boolean'], 'fun main() {\n    val i: Int = 42\n    val d: Double = 3.14\n    val s: String = "текст"\n    val b: Boolean = true\n    println(i)\n    println(d)\n    println(s)\n    println(b)\n}', [{t:'codeIncludes',v:'Int'},{t:'noError'}]);
+  
+  add('Основы', 'Сложение', '<p><code>+</code> складывает.</p>', 'Сложи числа.', 'fun main() {\n    println(5 + 3)\n}', ['println(5 + 3)'], 'fun main() {\n    println(5 + 3)\n}', [{t:'codeMatches',v:'\\d+\\s*\\+\\s*\\d+'},{t:'noError'}]);
+  
+  add('Основы', 'Строковые шаблоны', '<p><code>$name</code> — вставка переменной в строку.</p>', 'Используй шаблон.', 'fun main() {\n    val name = "Мир"\n    println("Привет, $name!")\n}', ['"текст $переменная"'], 'fun main() {\n    val name = "Мир"\n    println("Привет, $name!")\n}', [{t:'codeMatches',v:'\\$\\w+'},{t:'noError'}]);
+  
+  add('Условия', 'if', '<p><code>if</code> — условие.</p>', 'Проверь условие.', 'fun main() {\n    val age = 20\n    if (age >= 18) {\n        println("Взрослый")\n    }\n}', ['if (условие) { ... }'], 'fun main() {\n    val age = 20\n    if (age >= 18) {\n        println("Взрослый")\n    }\n}', [{t:'codeIncludes',v:'if ('},{t:'noError'}]);
+  
+  add('Условия', 'else', '<p><code>else</code> — иначе.</p>', 'Добавь else.', 'fun main() {\n    val age = 15\n    if (age >= 18) {\n        println("Взрослый")\n    } else {\n        println("Ребёнок")\n    }\n}', ['else { ... }'], 'fun main() {\n    val age = 15\n    if (age >= 18) {\n        println("Взрослый")\n    } else {\n        println("Ребёнок")\n    }\n}', [{t:'codeIncludes',v:'else'},{t:'noError'}]);
+  
+  add('Условия', 'when', '<p><code>when</code> — аналог switch.</p>', 'Используй when.', 'fun main() {\n    val x = 2\n    when (x) {\n        1 -> println("Один")\n        2 -> println("Два")\n        else -> println("Другое")\n    }\n}', ['when (x) { ... }'], 'fun main() {\n    val x = 2\n    when (x) {\n        1 -> println("Один")\n        2 -> println("Два")\n        else -> println("Другое")\n    }\n}', [{t:'codeIncludes',v:'when'},{t:'noError'}]);
+  
+  add('Циклы', 'for', '<p><code>for (i in range)</code>.</p>', 'Выведи числа 0-4.', 'fun main() {\n    for (i in 0..4) {\n        println(i)\n    }\n}', ['for (i in 0..4) { ... }'], 'fun main() {\n    for (i in 0..4) {\n        println(i)\n    }\n}', [{t:'codeIncludes',v:'for ('},{t:'outputLines',v:5}]);
+  
+  add('Циклы', 'while', '<p><code>while</code> — цикл с условием.</p>', 'Выведи числа через while.', 'fun main() {\n    var i = 0\n    while (i < 5) {\n        println(i)\n        i++\n    }\n}', ['while (условие) { ... }'], 'fun main() {\n    var i = 0\n    while (i < 5) {\n        println(i)\n        i++\n    }\n}', [{t:'codeIncludes',v:'while'},{t:'outputLines',v:5}]);
+  
+  add('Функции', 'Создание функции', '<p><code>fun</code> создаёт функцию.</p>', 'Создай функцию.', 'fun hello() {\n    println("Привет")\n}\nfun main() {\n    hello()\n}', ['fun name() { ... }'], 'fun hello() {\n    println("Привет")\n}\nfun main() {\n    hello()\n}', [{t:'codeIncludes',v:'fun '},{t:'noError'}]);
+  
+  add('Функции', 'Параметры', '<p>Функция с параметрами.</p>', 'Создай функцию с параметром.', 'fun greet(name: String) {\n    println("Привет, $name")\n}\nfun main() {\n    greet("Мир")\n}', ['fun greet(name: String) { ... }'], 'fun greet(name: String) {\n    println("Привет, $name")\n}\nfun main() {\n    greet("Мир")\n}', [{t:'codeIncludes',v:'fun '},{t:'noError'}]);
+  
+  add('Функции', 'Возврат значения', '<p>Функция может возвращать значение.</p>', 'Создай функцию с return.', 'fun add(a: Int, b: Int): Int {\n    return a + b\n}\nfun main() {\n    println(add(2, 3))\n}', ['fun add(a: Int, b: Int): Int { return a + b }'], 'fun add(a: Int, b: Int): Int {\n    return a + b\n}\nfun main() {\n    println(add(2, 3))\n}', [{t:'codeIncludes',v:'return'},{t:'noError'}]);
+  
+  add('Классы', 'Создание класса', '<p><code>class</code> — шаблон.</p>', 'Создай класс.', 'class Person(val name: String)\nfun main() {\n    val p = Person("Анна")\n    println(p.name)\n}', ['class Person(val name: String)'], 'class Person(val name: String)\nfun main() {\n    val p = Person("Анна")\n    println(p.name)\n}', [{t:'codeIncludes',v:'class '},{t:'noError'}]);
+  
+  add('Классы', 'Методы', '<p>Методы внутри класса.</p>', 'Добавь метод.', 'class Dog {\n    fun bark(): String {\n        return "Гав!"\n    }\n}\nfun main() {\n    val d = Dog()\n    println(d.bark())\n}', ['fun method() { ... }'], 'class Dog {\n    fun bark(): String {\n        return "Гав!"\n    }\n}\nfun main() {\n    val d = Dog()\n    println(d.bark())\n}', [{t:'codeIncludes',v:'fun '},{t:'noError'}]);
+  
+  return lessons;
+}
+
+// Генератор уроков для JavaScript (80+)
+function generateJavaScriptLessons(){
+  const lessons = [];
+  const add = (sec, title, theory, task, starter, hints, solution, rules) => {
+    lessons.push({sec, title, theory, task, starter, hints, solution, rules});
+  };
+  
+  add('Основы', 'Привет, мир!', '<p><code>console.log</code> — вывод.</p>', 'Выведи приветствие.', '// код', ['console.log("текст")'], 'console.log("Привет, мир!");', [{t:'codeIncludes',v:'console.log'},{t:'noError'},{t:'outputNotEmpty'}]);
+  
+  add('Основы', 'Комментарии', '<p><code>//</code> — комментарий.</p>', 'Добавь комментарий.', '// комментарий\nconsole.log("Код");', ['// комментарий'], '// комментарий\nconsole.log("Код");', [{t:'codeMatches',v:'//'},{t:'noError'}]);
+  
+  add('Основы', 'let — переменная', '<p><code>let</code> — изменяемая переменная.</p>', 'Создай let.', 'let x = 42;\nconsole.log(x);', ['let x = 42;'], 'let x = 42;\nconsole.log(x);', [{t:'codeIncludes',v:'let '},{t:'noError'}]);
+  
+  add('Основы', 'const — константа', '<p><code>const</code> — неизменяемая.</p>', 'Создай const.', 'const x = 42;\nconsole.log(x);', ['const x = 42;'], 'const x = 42;\nconsole.log(x);', [{t:'codeIncludes',v:'const '},{t:'noError'}]);
+  
+  add('Основы', 'Числа', '<p>Числа: <code>5</code>, <code>3.14</code>.</p>', 'Выведи число.', 'console.log(42);', ['console.log(42);'], 'console.log(42);', [{t:'codeMatches',v:'\\d+'},{t:'noError'}]);
+  
+  add('Основы', 'Строки', '<p>Строки в кавычках.</p>', 'Выведи строку.', 'console.log("текст");', ['console.log("текст");'], 'console.log("текст");', [{t:'codeMatches',v:'["\'][^"\']*["\']'},{t:'noError'}]);
+  
+  add('Основы', 'Сложение', '<p><code>+</code> складывает.</p>', 'Сложи числа.', 'console.log(5 + 3);', ['console.log(5 + 3);'], 'console.log(5 + 3);', [{t:'codeMatches',v:'\\d+\\s*\\+\\s*\\d+'},{t:'noError'}]);
+  
+  add('Основы', 'Склейка строк', '<p><code>+</code> склеивает строки.</p>', 'Склей строки.', 'console.log("Привет" + " " + "мир");', ['console.log("a" + "b");'], 'console.log("Привет" + " " + "мир");', [{t:'codeMatches',v:'["\']\\s*\\+\\s*["\']'},{t:'noError'}]);
+  
+  add('Основы', 'Шаблонные строки', '<p><code>`${}`</code> — вставка переменных.</p>', 'Используй шаблонную строку.', 'const name = "Мир";\nconsole.log(`Привет, ${name}!`);', ['`текст ${переменная}`'], 'const name = "Мир";\nconsole.log(`Привет, ${name}!`);', [{t:'codeMatches',v:'\\$\\{'},{t:'noError'}]);
+  
+  add('Условия', 'if', '<p><code>if</code> — условие.</p>', 'Проверь условие.', 'const age = 20;\nif (age >= 18) {\n    console.log("Взрослый");\n}', ['if (условие) { ... }'], 'const age = 20;\nif (age >= 18) {\n    console.log("Взрослый");\n}', [{t:'codeIncludes',v:'if ('},{t:'noError'}]);
+  
+  add('Условия', 'else', '<p><code>else</code> — иначе.</p>', 'Добавь else.', 'const age = 15;\nif (age >= 18) {\n    console.log("Взрослый");\n} else {\n    console.log("Ребёнок");\n}', ['else { ... }'], 'const age = 15;\nif (age >= 18) {\n    console.log("Взрослый");\n} else {\n    console.log("Ребёнок");\n}', [{t:'codeIncludes',v:'else'},{t:'noError'}]);
+  
+  add('Условия', 'Тернарный оператор', '<p><code>условие ? a : b</code>.</p>', 'Используй тернарный.', 'console.log(5 > 3 ? "Да" : "Нет");', ['условие ? a : b'], 'console.log(5 > 3 ? "Да" : "Нет");', [{t:'codeMatches',v:'\\?.*:'},{t:'noError'}]);
+  
+  add('Циклы', 'for', '<p><code>for (let i = 0; i < n; i++)</code>.</p>', 'Выведи числа 0-4.', 'for (let i = 0; i < 5; i++) {\n    console.log(i);\n}', ['for (let i = 0; i < 5; i++)'], 'for (let i = 0; i < 5; i++) {\n    console.log(i);\n}', [{t:'codeIncludes',v:'for ('},{t:'outputLines',v:5}]);
+  
+  add('Циклы', 'while', '<p><code>while</code> — цикл.</p>', 'Выведи числа через while.', 'let i = 0;\nwhile (i < 5) {\n    console.log(i);\n    i++;\n}', ['while (условие) { ... }'], 'let i = 0;\nwhile (i < 5) {\n    console.log(i);\n    i++;\n}', [{t:'codeIncludes',v:'while'},{t:'outputLines',v:5}]);
+  
+  add('Циклы', 'forEach', '<p><code>forEach</code> — для каждого элемента.</p>', 'Используй forEach.', '[1, 2, 3].forEach(x => console.log(x));', ['array.forEach(x => ...)'], '[1, 2, 3].forEach(x => console.log(x));', [{t:'codeIncludes',v:'forEach'},{t:'outputLines',v:3}]);
+  
+  add('Функции', 'Создание функции', '<p><code>function</code> создаёт функцию.</p>', 'Создай функцию.', 'function hello() {\n    console.log("Привет");\n}\nhello();', ['function name() { ... }'], 'function hello() {\n    console.log("Привет");\n}\nhello();', [{t:'codeIncludes',v:'function'},{t:'noError'}]);
+  
+  add('Функции', 'Стрелочные функции', '<p><code>() => {}</code> — короткая запись.</p>', 'Создай стрелочную функцию.', 'const hello = () => console.log("Привет");\nhello();', ['const f = () => { ... };'], 'const hello = () => console.log("Привет");\nhello();', [{t:'codeMatches',v:'\\(\\)\\s*=>'},{t:'noError'}]);
+  
+  add('Функции', 'Параметры', '<p>Функция с параметрами.</p>', 'Создай функцию с параметром.', 'function greet(name) {\n    console.log("Привет, " + name);\n}\ngreet("Мир");', ['function greet(name) { ... }'], 'function greet(name) {\n    console.log("Привет, " + name);\n}\ngreet("Мир");', [{t:'codeIncludes',v:'function'},{t:'noError'}]);
+  
+  add('Функции', 'Возврат значения', '<p><code>return</code> возвращает значение.</p>', 'Создай функцию с return.', 'function add(a, b) {\n    return a + b;\n}\nconsole.log(add(2, 3));', ['function add(a, b) { return a + b; }'], 'function add(a, b) {\n    return a + b;\n}\nconsole.log(add(2, 3));', [{t:'codeIncludes',v:'return'},{t:'noError'}]);
+  
+  add('Массивы', 'Создание массива', '<p><code>[1, 2, 3]</code> — массив.</p>', 'Создай массив.', 'const arr = [1, 2, 3];\nconsole.log(arr);', ['[1, 2, 3]'], 'const arr = [1, 2, 3];\nconsole.log(arr);', [{t:'codeMatches',v:'\\[.*\\]'},{t:'noError'}]);
+  
+  add('Массивы', 'push — добавить', '<p><code>push()</code> добавляет элемент.</p>', 'Добавь элемент в массив.', 'const arr = [1, 2];\narr.push(3);\nconsole.log(arr);', ['arr.push(элемент);'], 'const arr = [1, 2];\narr.push(3);\nconsole.log(arr);', [{t:'codeIncludes',v:'.push('},{t:'noError'}]);
+  
+  add('Массивы', 'map', '<p><code>map()</code> преобразует элементы.</p>', 'Удвой каждый элемент.', 'const arr = [1, 2, 3];\nconsole.log(arr.map(x => x * 2));', ['arr.map(x => x * 2)'], 'const arr = [1, 2, 3];\nconsole.log(arr.map(x => x * 2));', [{t:'codeIncludes',v:'.map('},{t:'noError'}]);
+  
+  add('Массивы', 'filter', '<p><code>filter()</code> отбирает элементы.</p>', 'Отбери чётные.', 'const arr = [1, 2, 3, 4];\nconsole.log(arr.filter(x => x % 2 === 0));', ['arr.filter(x => условие)'], 'const arr = [1, 2, 3, 4];\nconsole.log(arr.filter(x => x % 2 === 0));', [{t:'codeIncludes',v:'.filter('},{t:'noError'}]);
+  
+  add('Объекты', 'Создание объекта', '<p><code>{key: value}</code> — объект.</p>', 'Создай объект.', 'const person = {name: "Анна", age: 25};\nconsole.log(person.name);', ['{key: value}'], 'const person = {name: "Анна", age: 25};\nconsole.log(person.name);', [{t:'codeMatches',v:'\\{.*:.*\\}'},{t:'noError'}]);
+  
+  add('Объекты', 'Доступ к свойствам', '<p><code>obj.key</code> или <code>obj["key"]</code>.</p>', 'Получи значение по ключу.', 'const person = {name: "Анна"};\nconsole.log(person["name"]);', ['obj["key"]'], 'const person = {name: "Анна"};\nconsole.log(person["name"]);', [{t:'codeMatches',v:'\\[[\'"]\\w+[\'"]\\]'},{t:'noError'}]);
+  
+  return lessons;
+}
+
+// Инициализация языков
+const LANGUAGES = {};
+
+function initLanguages(){
+  LANGUAGES.python = {name: 'Python', icon: '🐍', fileExt: '.py', lessons: generatePythonLessons()};
+  LANGUAGES.java = {name: 'Java', icon: '☕', fileExt: '.java', lessons: generateJavaLessons()};
+  LANGUAGES.kotlin = {name: 'Kotlin', icon: '🟣', fileExt: '.kt', lessons: generateKotlinLessons()};
+  LANGUAGES.javascript = {name: 'JavaScript', icon: '💛', fileExt: '.js', lessons: generateJavaScriptLessons()};
+}
+
+initLanguages();
+
+/* ================= ЛОГИКА ================= */
+function startLang(lang){
+  currentLang = lang;
+  currentIndex = 0;
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('sidebarLang').textContent = LANGUAGES[lang].icon + ' ' + LANGUAGES[lang].name.toUpperCase();
+  buildSidebar();
+  renderLesson();
+  if(lang === 'python') ensurePyodide();
+}
+
+function loadProgress(){
+  try{ progress = JSON.parse(localStorage.getItem('codedojo-progress') || '{}'); }catch(e){ progress = {}; }
+}
+function saveProgress(){
+  try{ localStorage.setItem('codedojo-progress', JSON.stringify(progress)); }catch(e){}
+}
+
+function getLessons(){
+  return LANGUAGES[currentLang].lessons;
+}
+
+function buildSidebar(){
+  const wrap = document.getElementById('lessonList');
+  wrap.innerHTML = '';
+  const lessons = getLessons();
+  let lastSec = null;
+  
+  lessons.forEach((l, i) => {
+    if(l.sec !== lastSec){
+      lastSec = l.sec;
+      const h = document.createElement('div');
+      h.className = 'lesson-group-title';
+      h.textContent = lastSec;
+      wrap.appendChild(h);
+    }
+    const item = document.createElement('div');
+    const key = currentLang + '-' + i;
+    item.className = 'lesson-item' + (i === currentIndex ? ' active' : '') + (progress[key] ? ' done' : '');
+    item.innerHTML = `<span class="lnum">${i+1}</span><span class="chk">${progress[key] ? '✓' : ''}</span><span>${l.title}</span>`;
+    item.onclick = () => { currentIndex = i; renderLesson(); buildSidebar(); };
+    wrap.appendChild(item);
+  });
+}
+
+function renderLesson(){
+  const lessons = getLessons();
+  const l = lessons[currentIndex];
+  document.getElementById('lessonEyebrow').textContent = `${LANGUAGES[currentLang].name} · УРОК ${currentIndex+1} / ${lessons.length}`;
+  document.getElementById('lessonTitle').textContent = l.title;
+  document.getElementById('lessonTheory').innerHTML = l.theory;
+  document.getElementById('lessonTask').textContent = l.task;
+  document.getElementById('topTitle').textContent = l.title;
+  document.getElementById('fname').textContent = 'lesson_' + (currentIndex+1) + LANGUAGES[currentLang].fileExt;
+  document.getElementById('code').value = l.starter || '';
+  document.getElementById('terminal').innerHTML = '<span class="sys">Запусти код, чтобы увидеть результат</span>';
+  document.getElementById('resultBanner').className = 'result-banner';
+  document.getElementById('inputsRow').style.display = l.needsInput ? 'flex' : 'none';
+  document.getElementById('stdinValues').value = l.defaultInput || '';
+  
+  const hwrap = document.getElementById('hintsWrap');
+  hwrap.innerHTML = '';
+  
+  if(l.solution){
+    const solBtn = document.createElement('button');
+    solBtn.className = 'hint-btn';
+    solBtn.textContent = '💡 Показать решение';
+    solBtn.style.borderColor = 'var(--amber)';
+    solBtn.style.color = 'var(--amber)';
+    const solBox = document.createElement('div');
+    solBox.className = 'hint-box';
+    solBox.innerHTML = `<pre style="margin:0;color:var(--green)">${l.solution}</pre>`;
+    solBtn.onclick = () => { solBox.style.display = solBox.style.display === 'block' ? 'none' : 'block'; };
+    hwrap.appendChild(solBtn);
+    hwrap.appendChild(solBox);
+  }
+  
+  (l.hints || []).forEach((h, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'hint-btn';
+    btn.textContent = `Подсказка ${idx+1}`;
+    const box = document.createElement('div');
+    box.className = 'hint-box';
+    box.textContent = h;
+    btn.onclick = () => { box.style.display = box.style.display === 'block' ? 'none' : 'block'; };
+    hwrap.appendChild(btn);
+    hwrap.appendChild(box);
+  });
+  
+  document.getElementById('prevBtn').disabled = currentIndex === 0;
+  document.getElementById('nextBtn').disabled = currentIndex === lessons.length - 1;
+}
+
+/* ---------- Pyodide (Python) ---------- */
+async function ensurePyodide(){
+  if(pyodideReady) return pyodideReady;
+  pyodideReady = (async() => {
+    const term = document.getElementById('terminal');
+    term.innerHTML = '<span class="sys">Загружаю Python...</span>';
+    const pyodide = await loadPyodide();
+    term.innerHTML = '<span class="ok">Python готов. Можно запускать код.</span>';
+    return pyodide;
+  })();
+  return pyodideReady;
+}
+
+function appendTerm(text, cls){
+  const term = document.getElementById('terminal');
+  const span = document.createElement('span');
+  if(cls) span.className = cls;
+  span.textContent = text;
+  term.appendChild(span);
+  term.scrollTop = term.scrollHeight;
+}
+
+async function runCode(){
+  const code = document.getElementById('code').value;
+  const term = document.getElementById('terminal');
+  term.innerHTML = '';
+  document.getElementById('resultBanner').className = 'result-banner';
+  appendTerm('$ выполняю...\n', 'sys');
+  
+  let out = '', err = '';
+  
+  if(currentLang === 'python'){
+    const pyodide = await ensurePyodide();
+    const inputsRaw = document.getElementById('stdinValues').value || '';
+    const inputList = inputsRaw.split(',').map(s=>s.trim()).filter(s=>s.length>0);
+    try{
+      pyodide.runPython(`
+import builtins
+_original_input = builtins.input
+def _reset_input():
+    builtins.input = _original_input
+_reset_input()
+`);
+      pyodide.setStdout({batched:(s)=>{ out += s + '\n'; }});
+      pyodide.setStderr({batched:(s)=>{ err += s + '\n'; }});
+      pyodide.globals.set('_input_queue', inputList);
+      const preamble = `
+import builtins as _b
+_q = list(_input_queue)
+def _fake_input(prompt=''):
+    print(prompt, end='')
+    if _q:
+        v = _q.pop(0)
+    else:
+        v = ''
+    print(v)
+    return v
+_b.input = _fake_input
+`;
+      await pyodide.runPythonAsync(preamble + '\n' + code);
+    }catch(e){
+      err += String(e);
+    }
+  } else if(currentLang === 'javascript'){
+    try{
+      const originalLog = console.log;
+      console.log = (...args) => { out += args.join(' ') + '\n'; };
+      eval(code);
+      console.log = originalLog;
+    }catch(e){
+      err += String(e);
+    }
+  } else {
+    // Симуляция Java/Kotlin
+    out = '';
+    if(code.includes('System.out.println')){
+      const matches = code.match(/System\.out\.println\(([^)]+)\)/g);
+      if(matches){
+        matches.forEach(m => {
+          const arg = m.match(/\(([^)]+)\)/)[1];
+          out += arg.replace(/"/g, '') + '\n';
+        });
+      }
+    }
+    if(code.includes('println')){
+      const matches = code.match(/println\(([^)]+)\)/g);
+      if(matches){
+        matches.forEach(m => {
+          const arg = m.match(/\(([^)]+)\)/)[1];
+          out += arg.replace(/"/g, '').replace(/\$\w+/g, 'Мир') + '\n';
+        });
+      }
+    }
+    if(!out) out = '(Симуляция)\n';
+  }
+  
+  term.innerHTML = '';
+  if(out) appendTerm(out);
+  if(err){ appendTerm(err, 'err'); }
+  if(!out && !err) appendTerm('(программа ничего не вывела)', 'sys');
+  return {out, err};
+}
+
+function evalRules(l, code, out, err){
+  const fails = [];
+  for(const r of (l.rules || [])){
+    if(r.t === 'codeIncludes'){
+      if(!code.includes(r.v)) fails.push(`В коде должно быть: ${r.v}`);
+    } else if(r.t === 'codeMatches'){
+      const re = new RegExp(r.v);
+      if(!re.test(code)) fails.push('Код пока не соответствует заданию');
+    } else if(r.t === 'noError'){
+      if(err && err.trim()) fails.push('Программа завершилась с ошибкой');
+    } else if(r.t === 'hasError'){
+      if(!err || !err.trim()) fails.push('Ожидалась ошибка, но программа выполнилась без ошибок');
+    } else if(r.t === 'outputNotEmpty'){
+      if(!out || !out.trim()) fails.push('Программа ничего не вывела');
+    } else if(r.t === 'outputLines'){
+      const lines = out.split('\n').filter(x => x.trim().length > 0);
+      if(lines.length < r.v) fails.push(`Ожидалось хотя бы ${r.v} строк вывода`);
+    }
+  }
+  return fails;
+}
+
+async function checkCode(){
+  const {out, err} = await runCode();
+  const lessons = getLessons();
+  const l = lessons[currentIndex];
+  const code = document.getElementById('code').value;
+  const fails = evalRules(l, code, out, err);
+  const banner = document.getElementById('resultBanner');
+  if(fails.length === 0){
+    banner.className = 'result-banner show pass';
+    banner.textContent = '✓ Отлично! Можно идти дальше.';
+    const key = currentLang + '-' + currentIndex;
+    progress[key] = true;
+    saveProgress();
+    buildSidebar();
+  } else {
+    banner.className = 'result-banner show fail';
+    banner.textContent = '✗ ' + fails[0];
+  }
+}
+
+/* ---------- СОБЫТИЯ ---------- */
+document.getElementById('toLanding').onclick = () => {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('landing').style.display = 'block';
+};
+document.getElementById('prevBtn').onclick = () => { if(currentIndex > 0){ currentIndex--; renderLesson(); buildSidebar(); } };
+document.getElementById('nextBtn').onclick = () => { const lessons = getLessons(); if(currentIndex < lessons.length - 1){ currentIndex++; renderLesson(); buildSidebar(); } };
+document.getElementById('runBtn').onclick = runCode;
+document.getElementById('checkBtn').onclick = checkCode;
+document.getElementById('resetBtn').onclick = () => { const lessons = getLessons(); document.getElementById('code').value = lessons[currentIndex].starter || ''; };
+
+document.getElementById('code').addEventListener('keydown', (e) => {
+  if(e.key === 'Tab'){
+    e.preventDefault();
+    const t = e.target, s = t.selectionStart, en = t.selectionEnd;
+    t.value = t.value.substring(0, s) + '    ' + t.value.substring(en);
+    t.selectionStart = t.selectionEnd = s + 4;
+  }
+});
+
+loadProgress();
+</script>
+</body>
+</html>
